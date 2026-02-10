@@ -3,7 +3,7 @@ use std::{
     net::TcpStream,
 };
 
-use crate::memory_database::MemoryDatabase;
+use crate::temple::Temple;
 
 mod util;
 mod handle_get;
@@ -12,7 +12,7 @@ mod handle_del;
 mod handle_exists;
 mod handle_incr;
 
-pub fn handle_connection(rstream: TcpStream, db: &mut MemoryDatabase) -> Result<(), String> {
+pub fn handle_connection(rstream: TcpStream, db: Temple) -> Result<(), String> {
     let mut wstream = BufWriter::new(&rstream);
     let reader = BufReader::new(&rstream);
     let mut reader_lines = reader.lines();
@@ -21,7 +21,7 @@ pub fn handle_connection(rstream: TcpStream, db: &mut MemoryDatabase) -> Result<
         let line = reader_lines
             .next()
             .ok_or("Connection closed by client?")?
-            .map_err(|_| "Failed to read line")?;
+            .map_err(|_| "Failed to read line0")?;
 
         let count = if line.starts_with('*') {
             line[1..]
@@ -48,22 +48,23 @@ pub fn handle_connection(rstream: TcpStream, db: &mut MemoryDatabase) -> Result<
                 util::write_to_wstream(&mut wstream, b"+PONG\r\n")?;
             }
             "GET" => {
-                handle_get::handle_get(db, &mut reader_lines, count, &mut wstream, &mut count_ledger)?;
+                handle_get::handle_get(&db, &mut reader_lines, count, &mut wstream, &mut count_ledger)?;
             }
             "SET" => {
-                handle_set::handle_set(db, &mut reader_lines, count, &mut wstream, &mut count_ledger)?;
+                handle_set::handle_set(&db, &mut reader_lines, count, &mut wstream, &mut count_ledger)?;
             }
             "COMMAND" => {
+                util::cleanup(&mut count_ledger, &mut reader_lines); 
                 util::write_to_wstream(&mut wstream, b"*0\r\n")?;
             }
             "DEL" => {
-                handle_del::handle_del(db, &mut reader_lines, count, &mut wstream, &mut count_ledger)?;
+                handle_del::handle_del(&db, &mut reader_lines, count, &mut wstream, &mut count_ledger)?;
             }
             "EXISTS" => {
-                handle_exists::handle_exists(db, &mut reader_lines, count, &mut wstream, &mut count_ledger)?;
+                handle_exists::handle_exists(&db, &mut reader_lines, count, &mut wstream, &mut count_ledger)?;
             }
             "INCR" => {
-                handle_incr::handle_incr(db, &mut reader_lines, count, &mut wstream, &mut count_ledger)?;
+                handle_incr::handle_incr(&db, &mut reader_lines, count, &mut wstream, &mut count_ledger)?;
             }
 
             _ => {

@@ -4,10 +4,10 @@ use std::{
 };
 
 use crate::handle_connection::util;
-use crate::memory_database::MemoryDatabase;
+use crate::temple::Temple;
 
 pub fn handle_incr(
-    db: &mut MemoryDatabase,
+    db: &Temple,
     reader_lines: &mut Lines<BufReader<&TcpStream>>,
     count: usize,
     wstream: &mut BufWriter<&TcpStream>,
@@ -27,40 +27,13 @@ pub fn handle_incr(
         }
     };
 
-    if let Some(value_bytes) = db.get(&key) {
-        if let Ok(value) = String::from_utf8_lossy(&value_bytes).parse::<i64>() {
-            let new_value_because_apparently_using_value_plus_1_is_just_too_many_cpu_cycles =
-                value + 1;
-
-            util::write_to_wstream(
-                wstream,
-                format!(
-                    ":{}\r\n",
-                    new_value_because_apparently_using_value_plus_1_is_just_too_many_cpu_cycles
-                )
-                .as_bytes(),
-            )?;
-
-            db.insert(
-                &key,
-                (
-                    new_value_because_apparently_using_value_plus_1_is_just_too_many_cpu_cycles
-                        .to_string()
-                        .trim()
-                        .as_bytes()
-                        .to_vec(),
-                    None,
-                ),
-            );
-        } else {
-            util::write_to_wstream(
-                wstream,
-                b"-ERR invalid use of INCR, value not in number form.\r\n",
-            )?;
-        }
+    if let Some(value) = db.incr(key.clone()) {
+        util::write_to_wstream(wstream, format!(":{}\r\n", value).as_bytes())?;
     } else {
-        db.insert(&key, ("1".as_bytes().to_vec(), None));
-        util::write_to_wstream(wstream, b":1\r\n")?;
+        util::write_to_wstream(
+            wstream,
+            b"-ERR invalid use of INCR, value not in number form.\r\n",
+        )?;
     }
 
     Ok(())

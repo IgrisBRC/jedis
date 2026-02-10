@@ -4,10 +4,10 @@ use std::{
 };
 
 use crate::handle_connection::util;
-use crate::memory_database::MemoryDatabase;
+use crate::temple::Temple;
 
 pub fn handle_del(
-    db: &mut MemoryDatabase,
+    db: &Temple,
     reader_lines: &mut Lines<BufReader<&TcpStream>>,
     count: usize,
     wstream: &mut BufWriter<&TcpStream>,
@@ -29,7 +29,7 @@ pub fn handle_del(
             }
         };
 
-        if let Some(_) = db.remove(&key) {
+        if let Some(_) = db.remove(key) {
             keys_deleted += 1;
         }
     }

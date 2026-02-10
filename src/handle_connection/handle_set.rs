@@ -5,10 +5,10 @@ use std::{
 };
 
 use crate::handle_connection::util;
-use crate::memory_database::MemoryDatabase;
+use crate::temple::Temple;
 
 pub fn handle_set(
-    db: &mut MemoryDatabase,
+    db: &Temple,
     reader_lines: &mut Lines<BufReader<&TcpStream>>,
     count: usize,
     wstream: &mut BufWriter<&TcpStream>,
@@ -31,7 +31,7 @@ pub fn handle_set(
             }
         };
 
-        db.insert(&key, (value.into_bytes(), None));
+        db.insert(key, (value.into_bytes(), None));
 
         util::write_to_wstream(wstream, b"+OK\r\n")?;
 
@@ -75,7 +75,7 @@ pub fn handle_set(
 
                 if let Ok(time) = expiry {
                     db.insert(
-                        &key,
+                        key,
                         (
                             value.into_bytes(),
                             Some(SystemTime::now() + std::time::Duration::from_secs(time.into())),

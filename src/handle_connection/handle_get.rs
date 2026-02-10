@@ -5,10 +5,10 @@ use std::{
 };
 
 use crate::handle_connection::util;
-use crate::memory_database::MemoryDatabase;
+use crate::temple::Temple;
 
 pub fn handle_get(
-    db: &mut MemoryDatabase,
+    db: &Temple,
     reader_lines: &mut Lines<BufReader<&TcpStream>>,
     count: usize,
     wstream: &mut BufWriter<&TcpStream>,
@@ -28,7 +28,7 @@ pub fn handle_get(
         }
     };
 
-    if let Some(value_bytes) = db.get(&key) {
+    if let Some((value_bytes, _)) = db.get(key) {
         let header = format!("${}\r\n", value_bytes.len());
 
         wstream

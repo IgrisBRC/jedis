@@ -26,23 +26,22 @@ pub fn validate_and_get_next_term(
     let line = reader_lines
         .next()
         .ok_or("Connnection closed unexpectedly?")?
-        .map_err(|_| "Failed to read line")?;
+        .map_err(|_| "Failed to read line1")?;
+
+    let line = line.trim();
 
     let term_length = if line.starts_with('$') {
         line[1..].trim().parse::<usize>().map_err(|_| "Parsing error of some kind idk, don't blame me I just used rust's `parse` function, it just returned an error, okay? And no I am not gonna write my own parse function.")?
     } else {
-        let _ = reader_lines
-            .next()
-            .ok_or("Connnection closed unexpectedly?")?
-            .map_err(|_| "Failed to read line")?;
-        *count_ledger -= 1;
-        Err("-ERR Protocol Error: ")?
+        return Err("-ERR Protocol Error: Expected $".to_string())
     };
 
     let term = reader_lines
         .next()
         .ok_or("Connnection closed unexpectedly?")?
-        .map_err(|_| "Failed to read line")?;
+        .map_err(|_| "Failed to read line2")?;
+
+    let term = term.trim_end_matches('\r').to_string();
 
     *count_ledger -= 1;
 
