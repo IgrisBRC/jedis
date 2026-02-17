@@ -1,6 +1,6 @@
 use std::collections::hash_map::Entry;
 use std::collections::{HashSet, VecDeque};
-use std::sync::mpsc::Sender;
+use std::sync::mpsc::{Receiver, Sender};
 use std::{collections::HashMap, time::SystemTime};
 
 #[derive(Clone)]
@@ -11,14 +11,14 @@ pub enum Value {
     Set(HashSet<Vec<u8>>),
 }
 
-pub struct Soul(HashMap<String, (Value, Option<SystemTime>)>);
+pub struct Soul(HashMap<Vec<u8>, (Value, Option<SystemTime>)>);
 
 impl Soul {
     pub fn new() -> Self {
         Soul(HashMap::new())
     }
 
-    pub fn get(&mut self, key: String) -> Option<(Value, Option<SystemTime>)> {
+    pub fn get(&mut self, key: Vec<u8>) -> Option<(Value, Option<SystemTime>)> {
         match self.0.entry(key) {
             Entry::Occupied(occupied) => {
                 let (data, expiry) = occupied.get();
@@ -38,29 +38,29 @@ impl Soul {
 
     pub fn insert(
         &mut self,
-        key: String,
+        key: Vec<u8>,
         val: (Value, Option<SystemTime>),
     ) -> Option<(Value, Option<SystemTime>)> {
         self.0.insert(key, val)
     }
 
-    pub fn remove(&mut self, key: String) -> Option<(Value, Option<SystemTime>)> {
+    pub fn remove(&mut self, key: Vec<u8>) -> Option<(Value, Option<SystemTime>)> {
         self.0.remove(&key)
     }
 }
 
 pub enum Wish {
     Get {
-        key: String,
+        key: Vec<u8>,
         tx: Sender<Option<(Value, Option<SystemTime>)>>,
     },
     Insert {
-        key: String,
+        key: Vec<u8>,
         val: (Value, Option<SystemTime>),
         tx: Sender<Option<(Value, Option<SystemTime>)>>,
     },
     Remove {
-        key: String,
+        key: Vec<u8>,
         tx: Sender<Option<(Value, Option<SystemTime>)>>,
     },
 }
@@ -96,9 +96,12 @@ impl Temple {
         Temple { name, tx }
     }
 
-    pub fn get(&self, key: String) -> Option<(Value, Option<SystemTime>)> {
-        let (tx, rx) = std::sync::mpsc::channel();
-
+    pub fn get(
+        &self,
+        key: Vec<u8>,
+        tx: Sender<Option<(Value, Option<SystemTime>)>>,
+        rx: &Receiver<Option<(Value, Option<SystemTime>)>>,
+    ) -> Option<(Value, Option<SystemTime>)> {
         self.tx.send(Wish::Get { key, tx });
 
         rx.recv().unwrap_or(None)
@@ -106,18 +109,26 @@ impl Temple {
 
     pub fn insert(
         &self,
-        key: String,
+        key: Vec<u8>,
         value: (Value, Option<SystemTime>),
+        tx: Sender<Option<(Value, Option<SystemTime>)>>,
+        rx: &Receiver<Option<(Value, Option<SystemTime>)>>,
     ) -> Option<(Value, Option<SystemTime>)> {
-        let (tx, rx) = std::sync::mpsc::channel();
-
-        self.tx.send(Wish::Insert { key, val: value, tx });
+        self.tx.send(Wish::Insert {
+            key,
+            val: value,
+            tx,
+        });
 
         rx.recv().unwrap_or(None)
     }
 
-    pub fn remove(&self, key: String) -> Option<(Value, Option<SystemTime>)> {
-        let (tx, rx) = std::sync::mpsc::channel();
+    pub fn remove(
+        &self,
+        key: Vec<u8>,
+        tx: Sender<Option<(Value, Option<SystemTime>)>>,
+        rx: &Receiver<Option<(Value, Option<SystemTime>)>>,
+    ) -> Option<(Value, Option<SystemTime>)> {
 
         self.tx.send(Wish::Remove { key, tx });
 

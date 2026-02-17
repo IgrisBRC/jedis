@@ -3,9 +3,15 @@ use crate::{
     wish::Sin,
 };
 use mio::net::TcpStream;
-use std::io::Write;
+use std::{io::Write, sync::mpsc::{Receiver, Sender}, time::SystemTime};
 
-pub fn set(terms: &[Vec<u8>], stream: &mut TcpStream, temple: &mut Temple) -> Result<(), Sin> {
+pub fn set(
+    terms: &[Vec<u8>],
+    stream: &mut TcpStream,
+    temple: &mut Temple,
+    tx: Sender<Option<(Value, Option<SystemTime>)>>,
+    rx: &Receiver<Option<(Value, Option<SystemTime>)>>,
+) -> Result<(), Sin> {
     if terms.len() < 3 {
         stream
             .write_all(b"-ERR wrong number of arguments for SET command\r\n")
@@ -17,7 +23,7 @@ pub fn set(terms: &[Vec<u8>], stream: &mut TcpStream, temple: &mut Temple) -> Re
 
     let val = terms[2].clone();
 
-    temple.insert(key.to_string(), (Value::String(val), None));
+    temple.insert(key.into(), (Value::String(val), None), tx, rx);
 
     stream
         .write_all(b"+OK\r\n")

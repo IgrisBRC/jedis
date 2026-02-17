@@ -33,8 +33,14 @@ fn main() {
 
     let temple = Temple::new("IgrisDB".to_string());
 
+    let (tx, rx) = std::sync::mpsc::channel();
+
     loop {
-        poll.poll(&mut events, Some(std::time::Duration::from_millis(100)));
+        while let Ok((token, pilgrim)) = rx.try_recv() {
+            pilgrim_map.insert(token, pilgrim);
+        }
+
+        poll.poll(&mut events, Some(std::time::Duration::from_millis(0)));
 
         for event in &events {
             let token = event.token();
@@ -54,11 +60,15 @@ fn main() {
 
                             pilgrim_counter += 1;
 
+                            let (pilgrim_tx, pilgrim_rx) = std::sync::mpsc::channel();
+
                             pilgrim_map.insert(
                                 pilgrim_token,
                                 Pilgrim {
                                     stream,
                                     virtue: None,
+                                    tx: pilgrim_tx,
+                                    rx: pilgrim_rx
                                 },
                             );
                         }
@@ -71,10 +81,16 @@ fn main() {
                 },
 
                 Token(token_number) => {
-                    if let Some(pilgrim) = pilgrim_map.get_mut(&Token(token_number)) {
-                        if let Err(_) = wish::wish(pilgrim, temple.sanctify()) {
-                            pilgrim_map.remove(&Token(token_number));
-                        }
+                    if let Some(mut pilgrim) = pilgrim_map.remove(&Token(token_number)) {
+                        let sanctum = temple.sanctify();
+                        let token_number = token_number;
+                        let tx = tx.clone();
+
+                        choir.sing(move || {
+                            if let Ok(_) = wish::wish(&mut pilgrim, sanctum) {
+                                tx.send((mio::Token(token_number), pilgrim));
+                            }
+                        });
                     }
                 }
             }

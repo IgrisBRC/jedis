@@ -1,6 +1,6 @@
-use crate::temple::Temple;
+use crate::temple::{Temple, Value};
 use mio::net::TcpStream;
-use std::io::Read;
+use std::{io::Read, sync::mpsc::{Receiver, Sender}, time::SystemTime};
 
 pub enum Phase {
     Idle,
@@ -31,6 +31,8 @@ impl Virtue {
 pub struct Pilgrim {
     pub stream: TcpStream,
     pub virtue: Option<Virtue>,
+    pub tx: Sender<Option<(Value, Option<SystemTime>)>>,
+    pub rx: Receiver<Option<(Value, Option<SystemTime>)>>
 }
 
 pub enum Sin {
@@ -129,7 +131,7 @@ pub fn wish(pilgrim: &mut Pilgrim, mut temple: Temple) -> Result<(), Sin> {
                     if virtue.terms.len() == virtue.expected_terms {
                         // println!("Wish received {:?}", virtue.terms);
 
-                        grant::grant(&virtue.terms, &mut pilgrim.stream, &mut temple)?;
+                        grant::grant(&virtue.terms, &mut pilgrim.stream, &mut temple, pilgrim.tx.clone(), &pilgrim.rx)?;
 
                         virtue.terms.clear();
                         virtue.phase = Phase::Idle;
