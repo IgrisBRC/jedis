@@ -1,25 +1,22 @@
 # IgrisDB ⚔️
+Alright, this time, it's actually me, a real human writing this and not AI. Honestly I don't know why I even chose to have it written by AI to begin with because it looked bloody abysmal. Anyway, uhh yeah this is still under development, if you wanna know about the progress, keep reading. 
 
-A high-performance, in-memory data store implemented in **Rust**. IgrisDB utilizes the **RESP (Redis Serialization Protocol)** to provide a fast, thread-safe, and reliable key-value storage engine.
+## What it supports right now
 
-## 🚀 Architectural Overview
-IgrisDB is designed around a **Single-Threaded Worker (Actor Model)**. Instead of using heavy global locks (`Arc<Mutex<Database>>`) that cause contention, IgrisDB routes requests through a synchronized queue to a dedicated database thread. This ensures:
-- **Lock-Free Data Access:** The core HashMap is only ever touched by one thread.
-- **Predictable Performance:** No thundering herd problems or deadlocks.
-- **Memory Safety:** Leverages Rust's ownership model to manage state transitions across thread boundaries.
+Only some string operations are supported right now.
+Supports SET but not with the EX yet. 
+Supported GET, but no TTL yet.
+Supports DEL for strings only obviously.
+Supports PING, but it doesn't work if you are gonna pipeline the PING command (keep reading for the reason).
 
-## ✨ Features
-- **Full RESP Implementation:** Handles Simple Strings, Errors, Integers, Bulk Strings, and Arrays.
-- **Atomic Counters:** `INCR` support with integrated string-to-integer parsing and validation.
-- **Lazy Expiration (The Reaper):** Custom TTL logic that validates and purges expired keys during access to maximize throughput.
-- **Variadic Commands:** Efficient multi-key handling for `DEL` and `EXISTS`.
-- **Sass-Enhanced Errors:** Descriptive (and occasionally opinionated) error messages for protocol violations.
+## My order of operations for this project
 
-## 🛠 Commands Supported
-| Command | Description | Variadic |
-| :--- | :--- | :--- |
-| `GET` | Retrieve the value of a key | No |
-| `SET` | Set key to hold string value | No |
-| `DEL` | Removes the specified keys | **Yes** |
-| `PING` | Returns `PONG` to test connection | No |
+Next steps are to support all the commands for string atleast, which are INCR, DECR, EXISTS, and append.
+And after that to move onto the operations for other data types like hashmap, lists, and eventually sets.
+
+As for the PING command pipelining, for some reason when you pipeline it, the PING command array is sent without the *. And I honestly have no clue why they have done it like this, surely there must be good reason. The reason why I don't support it, because (main reason is that I don't it makes sense because in the real wrold no one's gonna do that (I don't think)) the code would get a bit messy.
+
+## Maybe plans
+
+Support for sharding
 
