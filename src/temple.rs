@@ -66,40 +66,46 @@ pub enum Wish {
 }
 
 #[derive(Clone)]
-pub struct Temple {
-    name: String,
+pub struct Temple<'a> {
+    name: &'a str,
     tx: Sender<Wish>,
 }
 
-impl Temple {
-    pub fn new(name: String) -> Self {
+impl<'a> Temple<'a> {
+    pub fn new(name: &'a str) -> Self {
         let (tx, rx) = std::sync::mpsc::channel();
 
         std::thread::spawn(move || {
             let mut soul = Soul::new();
 
-            while let Ok(wish) = rx.recv() {
-                match wish {
-                    Wish::Get { key, tx } => {
-                        if tx.send(soul.get(key)).is_err() {
-                            eprintln!("angel panicked");
+            loop {
+                match rx.recv() {
+                    Ok(wish) => match wish {
+                        Wish::Get { key, tx } => {
+                            if tx.send(soul.get(key)).is_err() {
+                                eprintln!("angel panicked");
+                            }
                         }
-                    }
-                    Wish::Insert { key, val, tx } => {
-                        if tx.send(soul.insert(key, val)).is_err() {
-                            eprintln!("angel panicked");
+                        Wish::Insert { key, val, tx } => {
+                            if tx.send(soul.insert(key, val)).is_err() {
+                                eprintln!("angel panicked");
+                            }
                         }
-                    }
-                    Wish::Remove { key, tx } => {
-                        if tx.send(soul.remove(key)).is_err() {
-                            eprintln!("angel panicked");
+                        Wish::Remove { key, tx } => {
+                            if tx.send(soul.remove(key)).is_err() {
+                                eprintln!("angel panicked");
+                            }
                         }
+                    },
+                    Err(e) => {
+                        eprintln!("GodThread: {}", e);
+                        break;
                     }
                 }
             }
         });
 
-        Temple { name, tx }
+        Temple { name: &name, tx }
     }
 
     pub fn get(
@@ -112,7 +118,13 @@ impl Temple {
             eprintln!("angel panicked");
         }
 
-        rx.recv().unwrap_or(None)
+        match rx.recv() {
+            Ok(result) => result,
+            Err(e) => {
+                eprintln!("{}", e);
+                None
+            }
+        }
     }
 
     pub fn insert(
@@ -122,16 +134,25 @@ impl Temple {
         tx: Sender<Option<(Value, Option<SystemTime>)>>,
         rx: &Receiver<Option<(Value, Option<SystemTime>)>>,
     ) -> Option<(Value, Option<SystemTime>)> {
-        if self.tx.send(Wish::Insert {
-            key,
-            val: value,
-            tx,
-        }).is_err() {
+        if self
+            .tx
+            .send(Wish::Insert {
+                key,
+                val: value,
+                tx,
+            })
+            .is_err()
+        {
             eprintln!("angel panicked");
         }
 
-
-        rx.recv().unwrap_or(None)
+        match rx.recv() {
+            Ok(result) => result,
+            Err(e) => {
+                eprintln!("{}", e);
+                None
+            }
+        }
     }
 
     pub fn remove(
@@ -144,8 +165,13 @@ impl Temple {
             eprintln!("angel panicked");
         }
 
-
-        rx.recv().unwrap_or(None)
+        match rx.recv() {
+            Ok(result) => result,
+            Err(e) => {
+                eprintln!("{}", e);
+                None
+            }
+        }
     }
 
     pub fn sanctify(&self) -> Self {

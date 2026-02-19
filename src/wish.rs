@@ -35,6 +35,7 @@ pub struct Pilgrim {
     pub rx: Receiver<Option<(Value, Option<SystemTime>)>>
 }
 
+#[derive(Debug)]
 pub enum Sin {
     Utf8Error,
     ParseError,
@@ -70,6 +71,8 @@ pub fn wish(pilgrim: &mut Pilgrim, mut temple: Temple) -> Result<(), Sin> {
             Phase::Idle => {
                 if virtue.backlog[0] == b'*' {
                     virtue.phase = Phase::AwaitingTermCount;
+                } else {
+                    // println!("{}",);
                 }
                 virtue.backlog.drain(..1);
             }

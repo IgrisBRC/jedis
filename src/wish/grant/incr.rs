@@ -27,7 +27,7 @@ pub fn incr(
     }
 
     match temple.get(terms[1].clone(), tx.clone(), rx) {
-        Some((Value::String(value), _)) => {
+        Some((Value::String(value), expiry)) => {
             if let Ok(value) = std::str::from_utf8(&value) {
                 if let Ok(value) = value.parse::<i64>() {
                     let incremented_value = value + 1;
@@ -36,7 +36,7 @@ pub fn incr(
                         terms[1].clone(),
                         (
                             Value::String(incremented_value.to_string().into_bytes()),
-                            None,
+                            expiry,
                         ),
                         tx,
                         rx,

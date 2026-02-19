@@ -48,7 +48,9 @@ pub fn append(
                 rx,
             );
 
-            stream.write_all(b"+OK\r\n").map_err(|_| Sin::Disconnected)?;
+            stream
+                .write_all(b"+OK\r\n")
+                .map_err(|_| Sin::Disconnected)?;
         }
     }
 

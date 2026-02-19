@@ -31,7 +31,7 @@ fn main() {
 
     let choir = Choir::new(6);
 
-    let temple = Temple::new("IgrisDB".to_string());
+    let temple = Temple::new("IgrisDB");
 
     let (tx, rx) = std::sync::mpsc::channel();
 
@@ -40,13 +40,6 @@ fn main() {
             pilgrim_map.insert(token, pilgrim);
         }
 
-        // for _ in 0..256 {
-        //     match rx.try_recv() {
-        //         Ok((token, pilgrim)) => { pilgrim_map.insert(token, pilgrim); }
-        //         Err(_) => break,
-        //     }
-        // }
-        
         if poll
             .poll(&mut events, Some(std::time::Duration::from_millis(0)))
             .is_err()
@@ -60,15 +53,17 @@ fn main() {
                 SERVER => loop {
                     match listener.accept() {
                         Ok((mut stream, _address)) => {
-                            // println!("Got a connection from: {}", address);
-
                             let pilgrim_token = Token(pilgrim_counter);
 
-                            if poll.registry().register(
-                                &mut stream,
-                                pilgrim_token,
-                                Interest::READABLE | Interest::WRITABLE,
-                            ).is_err() {
+                            if poll
+                                .registry()
+                                .register(
+                                    &mut stream,
+                                    pilgrim_token,
+                                    Interest::READABLE | Interest::WRITABLE,
+                                )
+                                .is_err()
+                            {
                                 eprintln!("register() gone wrong");
                             }
 
@@ -100,11 +95,14 @@ fn main() {
                         let token_number = token_number;
                         let tx = tx.clone();
 
-                        choir.sing(move || {
-                            if let Ok(_) = wish::wish(&mut pilgrim, sanctum) {
+                        choir.sing(move || match wish::wish(&mut pilgrim, sanctum) {
+                            Ok(_) => {
                                 if tx.send((mio::Token(token_number), pilgrim)).is_err() {
                                     eprintln!("angel panicked");
                                 }
+                            }
+                            Err(e) => {
+                                eprintln!("{:?}", e);
                             }
                         });
                     }
