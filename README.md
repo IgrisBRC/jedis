@@ -3,11 +3,14 @@ Alright, this time, it's actually me, a real human writing this and not AI. Hone
 
 ## What it supports right now
 
-Only some string operations are supported right now.
-Supports SET but not with the EX yet. 
-Supported GET, but no TTL yet.
-Supports DEL for strings only obviously.
-Supports PING, but it doesn't work if you are gonna pipeline the PING command (keep reading for the reason).
+| Command | Category | Status | Notes |
+| :--- | :--- | :--- | :--- |
+| SET | String | Supported | Now supports EX (seconds) for TTL |
+| GET | String | Supported | Functional, but does not display TTL remaining yet |
+| DEL | String | Supported | Specifically for string keys |
+| APPEND | String | Supported | Working, but susceptible to stalls at high volume |
+| INCR | String | Supported | Atomic increment for numeric strings |
+| PING | Connection | Supported | Does not support pipelining |
 
 ## Issues
 
