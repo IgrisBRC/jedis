@@ -26,18 +26,28 @@ fn main() {
         .register(&mut listener, SERVER, Interest::READABLE)
         .unwrap();
 
-    let mut pilgrim_map = HashMap::new();
+    let mut pilgrim_map: HashMap<Token, Pilgrim>= HashMap::new();
     let mut pilgrim_counter = 1;
 
     let choir = Choir::new(6);
 
     let temple = Temple::new("IgrisDB".to_string());
 
-    let (tx, rx) = std::sync::mpsc::channel();
+    let (tx, rx) = std::sync::mpsc::channel::<(Token, Pilgrim)>();
 
     loop {
         while let Ok((token, pilgrim)) = rx.try_recv() {
             pilgrim_map.insert(token, pilgrim);
+
+            if let Some(p) = pilgrim_map.get_mut(&token) {
+                poll.registry()
+                    .reregister(
+                        &mut p.stream,
+                        token,
+                        Interest::READABLE | Interest::WRITABLE,
+                    )
+                    .expect("Failed to reregister pilgrim in test");
+            }
         }
 
         // for _ in 0..256 {
@@ -46,7 +56,7 @@ fn main() {
         //         Err(_) => break,
         //     }
         // }
-        
+
         if poll
             .poll(&mut events, Some(std::time::Duration::from_millis(0)))
             .is_err()
@@ -64,11 +74,15 @@ fn main() {
 
                             let pilgrim_token = Token(pilgrim_counter);
 
-                            if poll.registry().register(
-                                &mut stream,
-                                pilgrim_token,
-                                Interest::READABLE | Interest::WRITABLE,
-                            ).is_err() {
+                            if poll
+                                .registry()
+                                .register(
+                                    &mut stream,
+                                    pilgrim_token,
+                                    Interest::READABLE | Interest::WRITABLE,
+                                )
+                                .is_err()
+                            {
                                 eprintln!("register() gone wrong");
                             }
 
