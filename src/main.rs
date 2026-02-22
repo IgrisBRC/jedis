@@ -1,10 +1,10 @@
 use std::collections::HashMap;
-use std::io::{ErrorKind};
+use std::io::ErrorKind;
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4, TcpStream};
 
 use jerusalem::choir::Choir;
 use jerusalem::temple::Temple;
-use jerusalem::wish::grant::{Decree};
+use jerusalem::wish::grant::Decree;
 use jerusalem::wish::{self, Pilgrim};
 use mio::net::TcpListener;
 use mio::{Events, Interest, Poll, Token};
@@ -29,7 +29,7 @@ fn main() {
         .register(&mut listener, SERVER, Interest::READABLE)
         .unwrap();
 
-    let mut ingress_map = HashMap::new();
+    let mut ingress_map: HashMap<Token, Pilgrim> = HashMap::new();
 
     let mut pilgrim_counter = 1;
 
@@ -37,7 +37,8 @@ fn main() {
 
     let temple = Temple::new("IgrisDB");
 
-    let (tx, rx) = std::sync::mpsc::channel();
+    let (ingress_tx, ingress_rx) = std::sync::mpsc::channel();
+    let (egress_tx, egress_rx) = std::sync::mpsc::channel();
 
     let (pilgrim_tx, pilgrim_rx) = std::sync::mpsc::channel::<Decree>();
 
@@ -51,7 +52,13 @@ fn main() {
                 }
                 Ok(Decree::Deliver(gift)) => {
                     if let Some(stream) = egress_map.get_mut(&gift.token) {
-                        egress::egress(stream, gift);
+                        let token = gift.token;
+
+                        if let Err(_) = egress::egress(stream, gift) {
+                            if egress_tx.send(token).is_err() {
+                                eprintln!("angel panicked");
+                            };
+                        }
                     }
                 }
                 Err(_) => break,
@@ -60,8 +67,16 @@ fn main() {
     });
 
     loop {
-        while let Ok((token, pilgrim)) = rx.try_recv() {
+        while let Ok((token, pilgrim)) = ingress_rx.try_recv() {
             ingress_map.insert(token, pilgrim);
+        }
+
+        while let Ok(token) = egress_rx.try_recv() {
+            if let Some(mut pilgrim) = ingress_map.remove(&token) {
+                if poll.registry().deregister(&mut pilgrim.stream).is_err() {
+                    eprintln!("deregister() failed")
+                }
+            }
         }
 
         if poll
@@ -125,7 +140,7 @@ fn main() {
                     if let Some(mut pilgrim) = ingress_map.remove(&Token(token_number)) {
                         let sanctum = temple.sanctify();
                         let token_number = token_number;
-                        let tx = tx.clone();
+                        let tx = ingress_tx.clone();
 
                         ingress_choir.sing(move || {
                             match wish::wish(&mut pilgrim, sanctum, Token(token_number)) {

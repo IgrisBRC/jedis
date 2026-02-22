@@ -19,10 +19,12 @@ pub fn set(
     let terms_len = terms.len();
 
     if terms_len < 3 {
-        tx.send(Decree::Deliver(Gift {
+        if tx.send(Decree::Deliver(Gift {
             token,
             response: Response::Error(ErrorType::IncorrectNumberOfArguments(Command::SET)),
-        }));
+        })).is_err() {
+            eprintln!("angel panicked");
+        };
 
         return Ok(());
     }

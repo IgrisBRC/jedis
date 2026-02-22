@@ -17,10 +17,12 @@ pub fn append(
     token: Token,
 ) -> Result<(), Sin> {
     if terms.len() < 3 {
-        tx.send(Decree::Deliver(Gift {
+        if tx.send(Decree::Deliver(Gift {
             token,
             response: Response::Error(ErrorType::IncorrectNumberOfArguments(Command::APPEND)),
-        }));
+        })).is_err() {
+            eprintln!("angel panicked");
+        };
 
         return Ok(());
     }

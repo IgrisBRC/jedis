@@ -13,10 +13,12 @@ pub fn del(
     token: Token,
 ) -> Result<(), Sin> {
     if terms.len() < 2 {
-        tx.send(Decree::Deliver(Gift {
+        if tx.send(Decree::Deliver(Gift {
             token,
             response: Response::Error(ErrorType::IncorrectNumberOfArguments(Command::DEL)),
-        }));
+        })).is_err() {
+            eprintln!("angel panicked");
+        };
 
         return Ok(());
     }

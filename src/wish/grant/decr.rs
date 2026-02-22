@@ -14,10 +14,12 @@ pub fn decr(
     token: Token,
 ) -> Result<(), Sin> {
     if terms.len() < 2 {
-        tx.send(Decree::Deliver(Gift {
+        if tx.send(Decree::Deliver(Gift {
             token,
             response: Response::Error(ErrorType::IncorrectNumberOfArguments(Command::DECR)),
-        }));
+        })).is_err() {
+            eprintln!("angel panicked");
+        };
 
         return Ok(());
     }

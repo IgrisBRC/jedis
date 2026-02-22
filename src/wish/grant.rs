@@ -46,26 +46,32 @@ pub fn grant(
         "DECR" => decr::decr(terms, temple, tx, token)?,
         "APPEND" => append::append(terms, temple, tx, token)?,
         "COMMAND" => {
-            tx.send(Decree::Deliver(Gift {
+            if tx.send(Decree::Deliver(Gift {
                 token: token,
                 response: Response::Info(InfoType::Ok),
-            }));
+            })).is_err() {
+                eprintln!("angel panicked");
+            };
 
             return Ok(());
         }
         "CONFIG" => {
-            tx.send(Decree::Deliver(Gift {
+            if tx.send(Decree::Deliver(Gift {
                 token: token,
                 response: Response::Info(InfoType::Ok),
-            }));
+            })).is_err() {
+                eprintln!("angel panicked");
+            };
 
             return Ok(());
         }
         _ => {
-            tx.send(Decree::Deliver(Gift {
+            if tx.send(Decree::Deliver(Gift {
                 token: token,
                 response: Response::Error(ErrorType::UnknownCommand),
-            }));
+            })).is_err() {
+                eprintln!("angel panicked");
+            };
 
             return Ok(());
         }

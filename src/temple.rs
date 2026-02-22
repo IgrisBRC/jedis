@@ -5,8 +5,8 @@ use std::{collections::HashMap, time::SystemTime};
 
 use mio::Token;
 
-use crate::wish::Response;
 use crate::wish::grant::{Decree, Gift};
+use crate::wish::{InfoType, Response};
 
 #[derive(Clone)]
 pub enum Value {
@@ -226,40 +226,6 @@ pub enum Wish {
     },
 }
 
-//This is so beautiful but I can't use :'(
-// pub enum Wish {
-//     Get {
-//         key: Vec<u8>,
-//         tx: Sender<Option<(Value, Option<SystemTime>)>>,
-//     },
-//     Set {
-//         key: Vec<u8>,
-//         value: (Value, Option<SystemTime>),
-//         tx: Sender<Option<(Value, Option<SystemTime>)>>,
-//     },
-//     Del {
-//         keys: Vec<Vec<u8>>,
-//         tx: Sender<u32>,
-//     },
-//     Append {
-//         key: Vec<u8>,
-//         value: Value,
-//         tx: Sender<usize>,
-//     },
-//     Incr {
-//         key: Vec<u8>,
-//         tx: Sender<Option<i64>>,
-//     },
-//     Decr {
-//         key: Vec<u8>,
-//         tx: Sender<Option<i64>>,
-//     },
-//     Exists {
-//         keys: Vec<Vec<u8>>,
-//         tx: Sender<u32>,
-//     },
-// }
-
 #[derive(Clone)]
 pub struct Temple<'a> {
     name: &'a str,
@@ -293,10 +259,12 @@ impl<'a> Temple<'a> {
                             value: val,
                             tx,
                         } => {
+                            soul.set(key, val);
+
                             if tx
                                 .send(Decree::Deliver(Gift {
                                     token,
-                                    response: Response::BulkString(soul.set(key, val)),
+                                    response: Response::Info(InfoType::Ok),
                                 }))
                                 .is_err()
                             {
@@ -444,64 +412,4 @@ impl<'a> Temple<'a> {
     pub fn sanctify(&self) -> Self {
         self.clone()
     }
-
-    //More beautiful code that I can't use
-    // pub fn get(&self, key: Vec<u8>, tx: Sender<Option<(Value, Option<SystemTime>)>>) {
-    //     if self.tx.send(Wish::Get { key, tx }).is_err() {
-    //         eprintln!("angel panicked");
-    //     }
-    // }
-    //
-    // pub fn set(
-    //     &self,
-    //     key: Vec<u8>,
-    //     value: (Value, Option<SystemTime>),
-    //     tx: Sender<Option<(Value, Option<SystemTime>)>>,
-    // ) {
-    //     if self
-    //         .tx
-    //         .send(Wish::Set {
-    //             key,
-    //             value,
-    //             tx,
-    //         })
-    //         .is_err()
-    //     {
-    //         eprintln!("angel panicked");
-    //     }
-    // }
-    //
-    // pub fn del(&self, keys: Vec<Vec<u8>>, tx: Sender<u32>) {
-    //     if self.tx.send(Wish::Del { keys, tx }).is_err() {
-    //         eprintln!("angel panicked");
-    //     }
-    // }
-    //
-    // pub fn exists(&self, keys: Vec<Vec<u8>>, tx: Sender<u32>) {
-    //     if self.tx.send(Wish::Exists { keys, tx }).is_err() {
-    //         eprintln!("angel panicked");
-    //     }
-    // }
-    //
-    // pub fn append(&self, key: Vec<u8>, value: Value, tx: Sender<usize>) {
-    //     if self.tx.send(Wish::Append { key, value, tx }).is_err() {
-    //         eprintln!("angel panicked");
-    //     }
-    // }
-    //
-    // pub fn incr(&self, key: Vec<u8>, tx: Sender<Option<i64>>) {
-    //     if self.tx.send(Wish::Incr { key, tx }).is_err() {
-    //         eprintln!("angel panicked");
-    //     }
-    // }
-    //
-    // pub fn decr(&self, key: Vec<u8>, tx: Sender<Option<i64>>) {
-    //     if self.tx.send(Wish::Decr { key, tx }).is_err() {
-    //         eprintln!("angel panicked");
-    //     }
-    // }
-    //
-    // pub fn sanctify(&self) -> Self {
-    //     self.clone()
-    // }
 }
