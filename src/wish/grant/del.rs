@@ -1,30 +1,27 @@
-use crate::{temple::{Temple, Value}, wish::Sin};
-use mio::net::TcpStream;
-use std::{io::Write, sync::mpsc::{Receiver, Sender}, time::SystemTime};
+use mio::Token;
 
-pub fn del(terms: &[Vec<u8>], stream: &mut TcpStream, temple: &mut Temple,
-    tx: Sender<Option<(Value, Option<SystemTime>)>>,
-    rx: &Receiver<Option<(Value, Option<SystemTime>)>>,
+use crate::{
+    temple::Temple,
+    wish::{grant::{Decree, Gift}, Command, ErrorType, Response, Sin},
+};
+use std::sync::mpsc::Sender;
+
+pub fn del(
+    terms: &[Vec<u8>],
+    temple: &mut Temple,
+    tx: Sender<Decree>,
+    token: Token,
 ) -> Result<(), Sin> {
     if terms.len() < 2 {
-        stream
-            .write_all(b"-ERR wrong number of arguments for DEL command\r\n")
-            .map_err(|_| Sin::Disconnected)?;
+        tx.send(Decree::Deliver(Gift {
+            token,
+            response: Response::Error(ErrorType::IncorrectNumberOfArguments(Command::DEL)),
+        }));
+
         return Ok(());
     }
 
-    let mut deleted_count = 0;
-
-    for key in &terms[1..] {
-        if temple.remove(key.clone(), tx.clone(), &rx).is_some() {
-            deleted_count += 1;
-        }
-    }
-
-    let response = format!(":{}\r\n", deleted_count);
-    stream
-        .write_all(response.as_bytes())
-        .map_err(|_| Sin::Disconnected)?;
+    temple.del(terms[1..].to_vec(), tx, token);
 
     Ok(())
 }

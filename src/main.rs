@@ -1,12 +1,15 @@
 use std::collections::HashMap;
-use std::io::ErrorKind;
-use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
+use std::io::{ErrorKind};
+use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4, TcpStream};
 
-use mini_redis::choir::Choir;
-use mini_redis::temple::Temple;
-use mini_redis::wish::{self, Pilgrim};
+use jerusalem::choir::Choir;
+use jerusalem::temple::Temple;
+use jerusalem::wish::grant::{Decree};
+use jerusalem::wish::{self, Pilgrim};
 use mio::net::TcpListener;
 use mio::{Events, Interest, Poll, Token};
+
+mod egress;
 
 fn main() {
     let ipv4_addr = Ipv4Addr::new(127, 0, 0, 1);
@@ -26,22 +29,43 @@ fn main() {
         .register(&mut listener, SERVER, Interest::READABLE)
         .unwrap();
 
-    let mut pilgrim_map = HashMap::new();
+    let mut ingress_map = HashMap::new();
+
     let mut pilgrim_counter = 1;
 
-    let choir = Choir::new(6);
+    let ingress_choir = Choir::new(5);
 
     let temple = Temple::new("IgrisDB");
 
     let (tx, rx) = std::sync::mpsc::channel();
 
+    let (pilgrim_tx, pilgrim_rx) = std::sync::mpsc::channel::<Decree>();
+
+    std::thread::spawn(move || {
+        let mut egress_map: HashMap<Token, mio::net::TcpStream> = HashMap::new();
+
+        loop {
+            match pilgrim_rx.recv() {
+                Ok(Decree::Welcome(token, stream)) => {
+                    egress_map.insert(token, stream);
+                }
+                Ok(Decree::Deliver(gift)) => {
+                    if let Some(stream) = egress_map.get_mut(&gift.token) {
+                        egress::egress(stream, gift);
+                    }
+                }
+                Err(_) => break,
+            }
+        }
+    });
+
     loop {
         while let Ok((token, pilgrim)) = rx.try_recv() {
-            pilgrim_map.insert(token, pilgrim);
+            ingress_map.insert(token, pilgrim);
         }
 
         if poll
-            .poll(&mut events, Some(std::time::Duration::from_millis(0)))
+            .poll(&mut events, Some(std::time::Duration::from_millis(10)))
             .is_err()
         {
             eprintln!("poll() gone wrong");
@@ -67,19 +91,27 @@ fn main() {
                                 eprintln!("register() gone wrong");
                             }
 
+                            let std_stream: TcpStream = stream.into();
+                            let std_stream_clone: TcpStream =
+                                std_stream.try_clone().expect("Failed to clone socket");
+
+                            let ingress_mio = mio::net::TcpStream::from_std(std_stream);
+                            let egress_mio = mio::net::TcpStream::from_std(std_stream_clone);
+
                             pilgrim_counter += 1;
 
-                            let (pilgrim_tx, pilgrim_rx) = std::sync::mpsc::channel();
-
-                            pilgrim_map.insert(
+                            ingress_map.insert(
                                 pilgrim_token,
                                 Pilgrim {
-                                    stream,
+                                    stream: ingress_mio,
                                     virtue: None,
-                                    tx: pilgrim_tx,
-                                    rx: pilgrim_rx,
+                                    tx: pilgrim_tx.clone(),
                                 },
                             );
+
+                            pilgrim_tx
+                                .send(Decree::Welcome(pilgrim_token, egress_mio))
+                                .unwrap();
                         }
                         Err(err) => {
                             if err.kind() == ErrorKind::WouldBlock {
@@ -90,19 +122,21 @@ fn main() {
                 },
 
                 Token(token_number) => {
-                    if let Some(mut pilgrim) = pilgrim_map.remove(&Token(token_number)) {
+                    if let Some(mut pilgrim) = ingress_map.remove(&Token(token_number)) {
                         let sanctum = temple.sanctify();
                         let token_number = token_number;
                         let tx = tx.clone();
 
-                        choir.sing(move || match wish::wish(&mut pilgrim, sanctum) {
-                            Ok(_) => {
-                                if tx.send((mio::Token(token_number), pilgrim)).is_err() {
-                                    eprintln!("angel panicked");
+                        ingress_choir.sing(move || {
+                            match wish::wish(&mut pilgrim, sanctum, Token(token_number)) {
+                                Ok(_) => {
+                                    if tx.send((mio::Token(token_number), pilgrim)).is_err() {
+                                        eprintln!("angel panicked");
+                                    }
                                 }
-                            }
-                            Err(e) => {
-                                eprintln!("{:?}", e);
+                                Err(e) => {
+                                    eprintln!("{:?}", e);
+                                }
                             }
                         });
                     }

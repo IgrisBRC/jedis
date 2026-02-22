@@ -1,12 +1,14 @@
-use mio::net::TcpStream;
-use std::io::Write;
+use std::sync::mpsc::Sender;
 
-use crate::wish::Sin;
+use mio::Token;
 
-pub fn ping(stream: &mut TcpStream) -> Result<(), Sin> {
-    stream
-        .write_all(b"+PONG\r\n")
-        .map_err(|_| Sin::Disconnected)?;
+use crate::wish::{grant::{Decree, Gift}, InfoType, Response, Sin};
+
+pub fn ping(tx: Sender<Decree>, token: Token) -> Result<(), Sin> {
+    tx.send(Decree::Deliver(Gift {
+        token: token,
+        response: Response::Info(InfoType::Pong),
+    }));
 
     Ok(())
 }

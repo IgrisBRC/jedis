@@ -1,7 +1,12 @@
 use std::collections::hash_map::Entry;
 use std::collections::{HashSet, VecDeque};
-use std::sync::mpsc::{Receiver, Sender};
+use std::sync::mpsc::Sender;
 use std::{collections::HashMap, time::SystemTime};
+
+use mio::Token;
+
+use crate::wish::Response;
+use crate::wish::grant::{Decree, Gift};
 
 #[derive(Clone)]
 pub enum Value {
@@ -36,7 +41,7 @@ impl Soul {
         }
     }
 
-    pub fn insert(
+    pub fn set(
         &mut self,
         key: Vec<u8>,
         val: (Value, Option<SystemTime>),
@@ -44,26 +49,216 @@ impl Soul {
         self.0.insert(key, val)
     }
 
-    pub fn remove(&mut self, key: Vec<u8>) -> Option<(Value, Option<SystemTime>)> {
-        self.0.remove(&key)
+    pub fn del(&mut self, keys: Vec<Vec<u8>>) -> u32 {
+        let mut number_of_entries_deleted = 0;
+
+        for key in keys {
+            if self.0.remove(&key).is_some() {
+                number_of_entries_deleted += 1;
+            }
+        }
+
+        number_of_entries_deleted
+    }
+
+    pub fn append(&mut self, key: Vec<u8>, incoming_value: Value) -> usize {
+        let Value::String(mut incoming_value) = incoming_value else {
+            return 0;
+        };
+
+        let entry = self.0.remove(&key);
+
+        match entry {
+            Some((Value::String(mut existing_value), Some(time))) if time >= SystemTime::now() => {
+                existing_value.append(&mut incoming_value);
+
+                let length = existing_value.len();
+
+                self.0
+                    .insert(key, (Value::String(existing_value), Some(time)));
+
+                length
+            }
+            Some((Value::String(mut existing_value), None)) => {
+                existing_value.append(&mut incoming_value);
+
+                let length = existing_value.len();
+
+                self.0.insert(key, (Value::String(existing_value), None));
+
+                length
+            }
+            Some((_, _)) => 0,
+            None => {
+                let length = incoming_value.len();
+
+                self.0.insert(key, (Value::String(incoming_value), None));
+
+                length
+            }
+        }
+    }
+
+    pub fn incr(&mut self, key: Vec<u8>) -> Option<i64> {
+        let entry = self.0.remove(&key);
+
+        match entry {
+            Some((Value::String(existing_value), expiry)) => {
+                if let Ok(existing_value) = std::str::from_utf8(&existing_value) {
+                    if let Ok(existing_value) = existing_value.parse::<i64>() {
+                        self.0.insert(
+                            key,
+                            (
+                                Value::String((existing_value + 1).to_string().into_bytes()),
+                                expiry,
+                            ),
+                        );
+
+                        return Some(existing_value + 1);
+                    }
+                }
+
+                self.0.insert(key, (Value::String(existing_value), expiry));
+                None
+            }
+
+            Some((other_value, expiry)) => {
+                self.0.insert(key, (other_value, expiry));
+                None
+            }
+
+            None => {
+                let initial = Value::String(b"1".to_vec());
+                self.0.insert(key, (initial, None));
+
+                Some(1)
+            }
+        }
+    }
+
+    pub fn decr(&mut self, key: Vec<u8>) -> Option<i64> {
+        let entry = self.0.remove(&key);
+
+        match entry {
+            Some((Value::String(existing_value), expiry)) => {
+                if let Ok(existing_value) = std::str::from_utf8(&existing_value) {
+                    if let Ok(existing_value) = existing_value.parse::<i64>() {
+                        self.0.insert(
+                            key,
+                            (
+                                Value::String((existing_value - 1).to_string().into_bytes()),
+                                expiry,
+                            ),
+                        );
+
+                        return Some(existing_value - 1);
+                    }
+                }
+
+                self.0.insert(key, (Value::String(existing_value), expiry));
+                None
+            }
+
+            Some((existing_value, expiry)) => {
+                self.0.insert(key, (existing_value, expiry));
+                None
+            }
+
+            None => {
+                let initial = Value::String(b"-1".to_vec());
+                self.0.insert(key, (initial, None));
+
+                Some(-1)
+            }
+        }
+    }
+
+    pub fn exists(&self, keys: Vec<Vec<u8>>) -> u32 {
+        let mut number_of_entries_that_exist = 0;
+
+        for key in keys {
+            if self.0.get(&key).is_some() {
+                number_of_entries_that_exist += 1;
+            }
+        }
+
+        number_of_entries_that_exist
     }
 }
 
 pub enum Wish {
     Get {
         key: Vec<u8>,
-        tx: Sender<Option<(Value, Option<SystemTime>)>>,
+        token: Token,
+        tx: Sender<Decree>,
     },
-    Insert {
+    Set {
         key: Vec<u8>,
-        val: (Value, Option<SystemTime>),
-        tx: Sender<Option<(Value, Option<SystemTime>)>>,
+        token: Token,
+        value: (Value, Option<SystemTime>),
+        tx: Sender<Decree>,
     },
-    Remove {
+    Del {
+        keys: Vec<Vec<u8>>,
+        token: Token,
+        tx: Sender<Decree>,
+    },
+    Append {
         key: Vec<u8>,
-        tx: Sender<Option<(Value, Option<SystemTime>)>>,
+        token: Token,
+        value: Value,
+        tx: Sender<Decree>,
+    },
+    Incr {
+        key: Vec<u8>,
+        token: Token,
+        tx: Sender<Decree>,
+    },
+    Decr {
+        key: Vec<u8>,
+        token: Token,
+        tx: Sender<Decree>,
+    },
+    Exists {
+        keys: Vec<Vec<u8>>,
+        token: Token,
+        tx: Sender<Decree>,
     },
 }
+
+//This is so beautiful but I can't use :'(
+// pub enum Wish {
+//     Get {
+//         key: Vec<u8>,
+//         tx: Sender<Option<(Value, Option<SystemTime>)>>,
+//     },
+//     Set {
+//         key: Vec<u8>,
+//         value: (Value, Option<SystemTime>),
+//         tx: Sender<Option<(Value, Option<SystemTime>)>>,
+//     },
+//     Del {
+//         keys: Vec<Vec<u8>>,
+//         tx: Sender<u32>,
+//     },
+//     Append {
+//         key: Vec<u8>,
+//         value: Value,
+//         tx: Sender<usize>,
+//     },
+//     Incr {
+//         key: Vec<u8>,
+//         tx: Sender<Option<i64>>,
+//     },
+//     Decr {
+//         key: Vec<u8>,
+//         tx: Sender<Option<i64>>,
+//     },
+//     Exists {
+//         keys: Vec<Vec<u8>>,
+//         tx: Sender<u32>,
+//     },
+// }
 
 #[derive(Clone)]
 pub struct Temple<'a> {
@@ -81,18 +276,90 @@ impl<'a> Temple<'a> {
             loop {
                 match rx.recv() {
                     Ok(wish) => match wish {
-                        Wish::Get { key, tx } => {
-                            if tx.send(soul.get(key)).is_err() {
+                        Wish::Get { key, token, tx } => {
+                            if tx
+                                .send(Decree::Deliver(Gift {
+                                    token,
+                                    response: Response::BulkString(soul.get(key)),
+                                }))
+                                .is_err()
+                            {
                                 eprintln!("angel panicked");
                             }
                         }
-                        Wish::Insert { key, val, tx } => {
-                            if tx.send(soul.insert(key, val)).is_err() {
+                        Wish::Set {
+                            key,
+                            token,
+                            value: val,
+                            tx,
+                        } => {
+                            if tx
+                                .send(Decree::Deliver(Gift {
+                                    token,
+                                    response: Response::BulkString(soul.set(key, val)),
+                                }))
+                                .is_err()
+                            {
                                 eprintln!("angel panicked");
                             }
                         }
-                        Wish::Remove { key, tx } => {
-                            if tx.send(soul.remove(key)).is_err() {
+                        Wish::Del { keys, token, tx } => {
+                            if tx
+                                .send(Decree::Deliver(Gift {
+                                    token,
+                                    response: Response::Amount(soul.del(keys)),
+                                }))
+                                .is_err()
+                            {
+                                eprintln!("angel panicked");
+                            }
+                        }
+                        Wish::Append {
+                            key,
+                            token,
+                            value: val,
+                            tx,
+                        } => {
+                            if tx
+                                .send(Decree::Deliver(Gift {
+                                    token,
+                                    response: Response::Length(soul.append(key, val)),
+                                }))
+                                .is_err()
+                            {
+                                eprintln!("angel panicked");
+                            }
+                        }
+                        Wish::Incr { key, token, tx } => {
+                            if tx
+                                .send(Decree::Deliver(Gift {
+                                    token,
+                                    response: Response::Number(soul.incr(key)),
+                                }))
+                                .is_err()
+                            {
+                                eprintln!("angel panicked");
+                            }
+                        }
+                        Wish::Decr { key, token, tx } => {
+                            if tx
+                                .send(Decree::Deliver(Gift {
+                                    token,
+                                    response: Response::Number(soul.decr(key)),
+                                }))
+                                .is_err()
+                            {
+                                eprintln!("angel panicked");
+                            }
+                        }
+                        Wish::Exists { keys, token, tx } => {
+                            if tx
+                                .send(Decree::Deliver(Gift {
+                                    token,
+                                    response: Response::Amount(soul.exists(keys)),
+                                }))
+                                .is_err()
+                            {
                                 eprintln!("angel panicked");
                             }
                         }
@@ -108,73 +375,133 @@ impl<'a> Temple<'a> {
         Temple { name: &name, tx }
     }
 
-    pub fn get(
-        &self,
-        key: Vec<u8>,
-        tx: Sender<Option<(Value, Option<SystemTime>)>>,
-        rx: &Receiver<Option<(Value, Option<SystemTime>)>>,
-    ) -> Option<(Value, Option<SystemTime>)> {
-        if self.tx.send(Wish::Get { key, tx }).is_err() {
+    pub fn get(&self, key: Vec<u8>, tx: Sender<Decree>, token: Token) {
+        if self.tx.send(Wish::Get { key, token, tx }).is_err() {
             eprintln!("angel panicked");
-        }
-
-        match rx.recv() {
-            Ok(result) => result,
-            Err(e) => {
-                eprintln!("{}", e);
-                None
-            }
         }
     }
 
-    pub fn insert(
+    pub fn set(
         &self,
         key: Vec<u8>,
         value: (Value, Option<SystemTime>),
-        tx: Sender<Option<(Value, Option<SystemTime>)>>,
-        rx: &Receiver<Option<(Value, Option<SystemTime>)>>,
-    ) -> Option<(Value, Option<SystemTime>)> {
+        tx: Sender<Decree>,
+        token: Token,
+    ) {
         if self
             .tx
-            .send(Wish::Insert {
+            .send(Wish::Set {
                 key,
-                val: value,
+                token,
+                value,
                 tx,
             })
             .is_err()
         {
             eprintln!("angel panicked");
         }
+    }
 
-        match rx.recv() {
-            Ok(result) => result,
-            Err(e) => {
-                eprintln!("{}", e);
-                None
-            }
+    pub fn del(&self, keys: Vec<Vec<u8>>, tx: Sender<Decree>, token: Token) {
+        if self.tx.send(Wish::Del { keys, token, tx }).is_err() {
+            eprintln!("angel panicked");
         }
     }
 
-    pub fn remove(
-        &self,
-        key: Vec<u8>,
-        tx: Sender<Option<(Value, Option<SystemTime>)>>,
-        rx: &Receiver<Option<(Value, Option<SystemTime>)>>,
-    ) -> Option<(Value, Option<SystemTime>)> {
-        if self.tx.send(Wish::Remove { key, tx }).is_err() {
+    pub fn exists(&self, keys: Vec<Vec<u8>>, tx: Sender<Decree>, token: Token) {
+        if self.tx.send(Wish::Exists { keys, token, tx }).is_err() {
             eprintln!("angel panicked");
         }
+    }
 
-        match rx.recv() {
-            Ok(result) => result,
-            Err(e) => {
-                eprintln!("{}", e);
-                None
-            }
+    pub fn append(&self, key: Vec<u8>, value: Value, tx: Sender<Decree>, token: Token) {
+        if self
+            .tx
+            .send(Wish::Append {
+                key,
+                token,
+                value,
+                tx,
+            })
+            .is_err()
+        {
+            eprintln!("angel panicked");
+        }
+    }
+
+    pub fn incr(&self, key: Vec<u8>, tx: Sender<Decree>, token: Token) {
+        if self.tx.send(Wish::Incr { key, token, tx }).is_err() {
+            eprintln!("angel panicked");
+        }
+    }
+
+    pub fn decr(&self, key: Vec<u8>, tx: Sender<Decree>, token: Token) {
+        if self.tx.send(Wish::Decr { key, token, tx }).is_err() {
+            eprintln!("angel panicked");
         }
     }
 
     pub fn sanctify(&self) -> Self {
         self.clone()
     }
+
+    //More beautiful code that I can't use
+    // pub fn get(&self, key: Vec<u8>, tx: Sender<Option<(Value, Option<SystemTime>)>>) {
+    //     if self.tx.send(Wish::Get { key, tx }).is_err() {
+    //         eprintln!("angel panicked");
+    //     }
+    // }
+    //
+    // pub fn set(
+    //     &self,
+    //     key: Vec<u8>,
+    //     value: (Value, Option<SystemTime>),
+    //     tx: Sender<Option<(Value, Option<SystemTime>)>>,
+    // ) {
+    //     if self
+    //         .tx
+    //         .send(Wish::Set {
+    //             key,
+    //             value,
+    //             tx,
+    //         })
+    //         .is_err()
+    //     {
+    //         eprintln!("angel panicked");
+    //     }
+    // }
+    //
+    // pub fn del(&self, keys: Vec<Vec<u8>>, tx: Sender<u32>) {
+    //     if self.tx.send(Wish::Del { keys, tx }).is_err() {
+    //         eprintln!("angel panicked");
+    //     }
+    // }
+    //
+    // pub fn exists(&self, keys: Vec<Vec<u8>>, tx: Sender<u32>) {
+    //     if self.tx.send(Wish::Exists { keys, tx }).is_err() {
+    //         eprintln!("angel panicked");
+    //     }
+    // }
+    //
+    // pub fn append(&self, key: Vec<u8>, value: Value, tx: Sender<usize>) {
+    //     if self.tx.send(Wish::Append { key, value, tx }).is_err() {
+    //         eprintln!("angel panicked");
+    //     }
+    // }
+    //
+    // pub fn incr(&self, key: Vec<u8>, tx: Sender<Option<i64>>) {
+    //     if self.tx.send(Wish::Incr { key, tx }).is_err() {
+    //         eprintln!("angel panicked");
+    //     }
+    // }
+    //
+    // pub fn decr(&self, key: Vec<u8>, tx: Sender<Option<i64>>) {
+    //     if self.tx.send(Wish::Decr { key, tx }).is_err() {
+    //         eprintln!("angel panicked");
+    //     }
+    // }
+    //
+    // pub fn sanctify(&self) -> Self {
+    //     self.clone()
+    // }
 }

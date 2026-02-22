@@ -1,45 +1,74 @@
-use crate::{temple::{Temple, Value}, wish::Sin};
-use mio::net::TcpStream;
-use std::{io::Write, sync::mpsc::{Receiver, Sender}, time::SystemTime};
+use mio::Token;
 
+use crate::{
+    temple::Temple,
+    wish::{ErrorType, InfoType, Response, Sin},
+};
+
+use std::sync::mpsc::Sender;
+
+mod append;
+mod decr;
 mod del;
+mod exists;
 mod get;
+mod incr;
 mod ping;
 mod set;
-mod exists;
-mod incr;
-mod decr;
-mod append;
+
+pub struct Gift {
+    pub token: mio::Token,
+    pub response: Response,
+}
+
+pub enum Decree {
+    Welcome(Token, mio::net::TcpStream),
+    Deliver(Gift),
+}
 
 pub fn grant(
     terms: &[Vec<u8>],
-    stream: &mut TcpStream,
     temple: &mut Temple,
-    tx: Sender<Option<(Value, Option<SystemTime>)>>,
-    rx: &Receiver<Option<(Value, Option<SystemTime>)>>,
+    tx: Sender<Decree>,
+    token: Token,
 ) -> Result<(), Sin> {
     match std::str::from_utf8(&terms[0])
         .map_err(|_| Sin::Disconnected)?
         .to_uppercase()
         .as_str()
     {
-        "SET" => set::set(terms, stream, temple, tx, rx)?,
-        "GET" => get::get(terms, stream, temple, tx, rx)?,
-        "PING" => ping::ping(stream)?,
-        "DEL" => del::del(terms, stream, temple, tx, rx)?,
-        "EXISTS" => exists::exists(terms, stream, temple, tx, rx)?,
-        "INCR" => incr::incr(terms, stream, temple, tx, rx)?,
-        "DECR" => decr::decr(terms, stream, temple, tx, rx)?,
-        "APPEND" => append::append(terms, stream, temple, tx, rx)?,
-        "COMMAND" => stream
-            .write_all(b"+OK\r\n")
-            .map_err(|_| Sin::Disconnected)?,
-        "CONFIG" => stream
-            .write_all(b"+OK\r\n")
-            .map_err(|_| Sin::Disconnected)?,
-        _ => stream
-            .write_all(b"-ERR unknown command\r\n")
-            .map_err(|_| Sin::Disconnected)?,
+        "SET" => set::set(terms, temple, tx, token)?,
+        "GET" => get::get(terms, temple, tx, token)?,
+        "PING" => ping::ping(tx, token)?,
+        "DEL" => del::del(terms, temple, tx, token)?,
+        "EXISTS" => exists::exists(terms, temple, tx, token)?,
+        "INCR" => incr::incr(terms, temple, tx, token)?,
+        "DECR" => decr::decr(terms, temple, tx, token)?,
+        "APPEND" => append::append(terms, temple, tx, token)?,
+        "COMMAND" => {
+            tx.send(Decree::Deliver(Gift {
+                token: token,
+                response: Response::Info(InfoType::Ok),
+            }));
+
+            return Ok(());
+        }
+        "CONFIG" => {
+            tx.send(Decree::Deliver(Gift {
+                token: token,
+                response: Response::Info(InfoType::Ok),
+            }));
+
+            return Ok(());
+        }
+        _ => {
+            tx.send(Decree::Deliver(Gift {
+                token: token,
+                response: Response::Error(ErrorType::UnknownCommand),
+            }));
+
+            return Ok(());
+        }
     }
 
     Ok(())

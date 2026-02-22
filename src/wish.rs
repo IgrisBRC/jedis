@@ -1,6 +1,6 @@
-use crate::temple::{Temple, Value};
-use mio::net::TcpStream;
-use std::{io::Read, sync::mpsc::{Receiver, Sender}, time::SystemTime};
+use crate::{temple::{Temple, Value}, wish::grant::{Decree, Gift}};
+use mio::{net::TcpStream, Token};
+use std::{io::Read, sync::mpsc::Sender, time::SystemTime};
 
 pub enum Phase {
     Idle,
@@ -28,11 +28,41 @@ impl Virtue {
     }
 }
 
+pub enum Command {
+    SET,
+    GET,
+    EX,
+    INCR,
+    DECR,
+    APPEND,
+    EXISTS,
+    DEL,
+}
+
+pub enum ErrorType {
+    IncorrectNumberOfArguments(Command),
+    IncorrectUsage(Command),
+    UnknownCommand
+}
+
+pub enum InfoType {
+    Ok,
+    Pong
+}
+
+pub enum Response {
+    Error(ErrorType),
+    Info(InfoType),
+    BulkString(Option<(Value, Option<SystemTime>)>),
+    Amount(u32),
+    Number(Option<i64>),
+    Length(usize),
+}
+
 pub struct Pilgrim {
     pub stream: TcpStream,
     pub virtue: Option<Virtue>,
-    pub tx: Sender<Option<(Value, Option<SystemTime>)>>,
-    pub rx: Receiver<Option<(Value, Option<SystemTime>)>>
+    pub tx: Sender<Decree>,
 }
 
 #[derive(Debug)]
@@ -43,10 +73,10 @@ pub enum Sin {
     Blasphemy,
 }
 
-mod grant;
+pub mod grant;
 mod util;
 
-pub fn wish(pilgrim: &mut Pilgrim, mut temple: Temple) -> Result<(), Sin> {
+pub fn wish(pilgrim: &mut Pilgrim, mut temple: Temple, token: Token) -> Result<(), Sin> {
     let virtue = pilgrim.virtue.get_or_insert_with(Virtue::new);
 
     let mut buffer = [0; 1024];
@@ -71,9 +101,8 @@ pub fn wish(pilgrim: &mut Pilgrim, mut temple: Temple) -> Result<(), Sin> {
             Phase::Idle => {
                 if virtue.backlog[0] == b'*' {
                     virtue.phase = Phase::AwaitingTermCount;
-                } else {
-                    // println!("{}",);
                 }
+
                 virtue.backlog.drain(..1);
             }
             Phase::AwaitingTermCount => {
@@ -123,9 +152,6 @@ pub fn wish(pilgrim: &mut Pilgrim, mut temple: Temple) -> Result<(), Sin> {
                         return Err(Sin::Blasphemy);
                     }
 
-                    // let term = std::str::from_utf8(&virtue.backlog[..characters_remaining])
-                    //     .map_err(|_| Sin::Utf8Error)?;
-                    
                     let term = &virtue.backlog[..characters_remaining];
 
                     virtue.terms.push(term.into());
@@ -134,8 +160,7 @@ pub fn wish(pilgrim: &mut Pilgrim, mut temple: Temple) -> Result<(), Sin> {
                     virtue.phase = Phase::GraspingMarker;
 
                     if virtue.terms.len() == virtue.expected_terms {
-
-                        grant::grant(&virtue.terms, &mut pilgrim.stream, &mut temple, pilgrim.tx.clone(), &pilgrim.rx)?;
+                        grant::grant(&virtue.terms, &mut temple, pilgrim.tx.clone(), token)?;
 
                         virtue.terms.clear();
                         virtue.phase = Phase::Idle;

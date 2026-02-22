@@ -1,46 +1,28 @@
-use std::{io::Write, sync::mpsc::{Receiver, Sender}, time::SystemTime};
+use std::{io::Write, sync::mpsc::Sender, time::SystemTime};
 
-use mio::net::TcpStream;
+use mio::Token;
 
 use crate::{
     temple::{Temple, Value},
-    wish::Sin,
+    wish::{grant::{Decree, Gift}, Command, ErrorType, Response, Sin},
 };
 
-pub fn get(terms: &[Vec<u8>], stream: &mut TcpStream, temple: &mut Temple,
-    tx: Sender<Option<(Value, Option<SystemTime>)>>,
-    rx: &Receiver<Option<(Value, Option<SystemTime>)>>,
+pub fn get(
+    terms: &[Vec<u8>],
+    temple: &mut Temple,
+    tx: Sender<Decree>,
+    token:Token
 ) -> Result<(), Sin> {
     if terms.len() < 2 {
-        stream
-            .write_all(b"-ERR Incorrect number of terms for GET\r\n")
-            .map_err(|_| Sin::Disconnected)?;
+        tx.send(Decree::Deliver(Gift {
+            token,
+            response: Response::Error(ErrorType::IncorrectNumberOfArguments(Command::GET)),
+        }));
 
-        return Ok(())
+        return Ok(());
     }
 
-    match temple.get(terms[1].clone(), tx, rx) {
-        Some((Value::String(value), _)) => {
-
-            let mut response = Vec::with_capacity(value.len() + 16);
-
-            response.extend_from_slice(format!("${}\r\n", value.len()).as_bytes());
-            response.extend_from_slice(&value);
-            response.extend_from_slice(b"\r\n");
-
-            stream.write_all(&response).map_err(|_| Sin::Disconnected)?;
-        }
-        Some(_) => {
-            stream
-                .write_all(b"-ERR Calling GET on wrong data type\r\n")
-                .map_err(|_| Sin::Disconnected)?;
-        }
-        None => {
-            stream
-                .write_all(b"$-1\r\n")
-                .map_err(|_| Sin::Disconnected)?;
-        }
-    }
+    temple.get(terms[1].clone(), tx, token);
 
     Ok(())
 }

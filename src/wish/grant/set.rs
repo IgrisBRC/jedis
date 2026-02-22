@@ -1,55 +1,58 @@
+use mio::Token;
+
 use crate::{
     temple::{Temple, Value},
-    wish::Sin,
+    wish::{
+        Command, ErrorType, Response, Sin,
+        grant::{Decree, Gift},
+    },
 };
-use mio::net::TcpStream;
-use std::{
-    io::Write,
-    sync::mpsc::{Receiver, Sender},
-    time::SystemTime,
-};
+
+use std::{sync::mpsc::Sender, time::SystemTime};
 
 pub fn set(
     terms: &[Vec<u8>],
-    stream: &mut TcpStream,
     temple: &mut Temple,
-    tx: Sender<Option<(Value, Option<SystemTime>)>>,
-    rx: &Receiver<Option<(Value, Option<SystemTime>)>>,
+    tx: Sender<Decree>,
+    token: Token,
 ) -> Result<(), Sin> {
-    if terms.len() < 3 {
-        stream
-            .write_all(b"-ERR wrong number of arguments for SET command\r\n")
-            .map_err(|_| Sin::Disconnected)?;
+    let terms_len = terms.len();
+
+    if terms_len < 3 {
+        tx.send(Decree::Deliver(Gift {
+            token,
+            response: Response::Error(ErrorType::IncorrectNumberOfArguments(Command::SET)),
+        }));
+
         return Ok(());
     }
 
-    let value = terms[2].clone();
-
-    if terms.len() == 5 {
+    if terms_len == 3 {
+        temple.set(
+            terms[1].clone(),
+            (Value::String(terms[2].clone()), None),
+            tx,
+            token,
+        );
+    } else if terms_len == 5 {
         if let Ok(command) = std::str::from_utf8(&terms[3]) {
             if command.to_uppercase() == "EX" {
                 if let Ok(expiry) = std::str::from_utf8(&terms[4]) {
                     if let Ok(expiry) = expiry.parse::<u64>() {
-                        temple.insert(
+                        temple.set(
                             terms[1].clone(),
                             (
-                                Value::String(value),
+                                Value::String(terms[2].clone()),
                                 Some(SystemTime::now() + std::time::Duration::from_secs(expiry)),
                             ),
                             tx,
-                            rx,
+                            token,
                         );
                     }
                 }
             }
         }
-    } else {
-        temple.insert(terms[1].clone(), (Value::String(value), None), tx, rx);
     }
-
-    stream
-        .write_all(b"+OK\r\n")
-        .map_err(|_| Sin::Disconnected)?;
 
     Ok(())
 }
