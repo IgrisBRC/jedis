@@ -3,13 +3,12 @@ use std::io::ErrorKind;
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4, TcpStream};
 
 use jerusalem::choir::Choir;
+use jerusalem::egress;
 use jerusalem::temple::Temple;
 use jerusalem::wish::grant::Decree;
 use jerusalem::wish::{self, Pilgrim};
 use mio::net::TcpListener;
 use mio::{Events, Interest, Poll, Token};
-
-mod egress;
 
 fn main() {
     let ipv4_addr = Ipv4Addr::new(127, 0, 0, 1);
@@ -69,6 +68,16 @@ fn main() {
     loop {
         while let Ok((token, pilgrim)) = ingress_rx.try_recv() {
             ingress_map.insert(token, pilgrim);
+
+            if let Some(p) = ingress_map.get_mut(&token) {
+                poll.registry()
+                    .reregister(
+                        &mut p.stream,
+                        token,
+                        Interest::READABLE | Interest::WRITABLE,
+                    )
+                    .expect("Failed to reregister pilgrim in test");
+            }
         }
 
         while let Ok(token) = egress_rx.try_recv() {
