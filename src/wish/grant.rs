@@ -30,7 +30,7 @@ pub enum Decree {
 }
 
 pub fn grant(
-    terms: &[Vec<u8>],
+    terms: Vec<Vec<u8>>,
     temple: &mut Temple,
     tx: Sender<Decree>,
     token: Token,

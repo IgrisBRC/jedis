@@ -3,14 +3,14 @@ use mio::Token;
 use crate::{
     temple::Temple,
     wish::{
-        Command, Sacrilege, Response, Sin,
+        Command, Response, Sacrilege, Sin,
         grant::{Decree, Gift},
     },
 };
 use std::sync::mpsc::Sender;
 
 pub fn hset(
-    terms: &[Vec<u8>],
+    terms: Vec<Vec<u8>>,
     temple: &mut Temple,
     tx: Sender<Decree>,
     token: Token,
@@ -30,20 +30,18 @@ pub fn hset(
         return Ok(());
     }
 
-    let key = terms[1].clone();
+    let mut terms_iter = terms.into_iter();
+    terms_iter.next();
 
-    let mut field_value_pairs = Vec::new();
+    if let Some(key) = terms_iter.next() {
+        let mut field_value_pairs = Vec::new();
 
-    let mut idx = 2;
+        while let (Some(field), Some(value)) = (terms_iter.next(), terms_iter.next()) {
+            field_value_pairs.push((field, value));
+        }
 
-    while idx < terms_len - 1 {
-        let field_value_pair = (terms[idx].clone(), terms[idx + 1].clone());
-        field_value_pairs.push(field_value_pair);
-
-        idx += 2;
+        temple.hset(key, field_value_pairs, tx, token);
     }
-
-    temple.hset(key, field_value_pairs, tx, token);
 
     Ok(())
 }

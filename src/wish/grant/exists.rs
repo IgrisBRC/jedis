@@ -3,29 +3,35 @@ use mio::Token;
 use crate::{
     temple::Temple,
     wish::{
-        Command, Sacrilege, Response, Sin,
+        Command, Response, Sacrilege, Sin,
         grant::{Decree, Gift},
     },
 };
 use std::sync::mpsc::Sender;
 
 pub fn exists(
-    terms: &[Vec<u8>],
+    terms: Vec<Vec<u8>>,
     temple: &mut Temple,
     tx: Sender<Decree>,
     token: Token,
 ) -> Result<(), Sin> {
     if terms.len() < 2 {
-        if tx.send(Decree::Deliver(Gift {
-            token,
-            response: Response::Error(Sacrilege::IncorrectNumberOfArguments(Command::EXISTS)),
-        })).is_err() {
+        if tx
+            .send(Decree::Deliver(Gift {
+                token,
+                response: Response::Error(Sacrilege::IncorrectNumberOfArguments(Command::EXISTS)),
+            }))
+            .is_err()
+        {
             eprintln!("angel panicked");
         };
         return Ok(());
     }
 
-    temple.exists(terms[1..].to_vec(), tx, token);
+    let mut terms_iter = terms.into_iter();
+    terms_iter.next();
+
+    temple.exists(terms_iter.collect(), tx, token);
 
     Ok(())
 }

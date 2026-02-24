@@ -5,32 +5,33 @@ use mio::Token;
 use crate::{
     temple::Temple,
     wish::{
-        Command, Sacrilege, Response, Sin,
+        Command, Response, Sacrilege, Sin,
         grant::{Decree, Gift},
     },
 };
 
 pub fn hget(
-    terms: &[Vec<u8>],
+    terms: Vec<Vec<u8>>,
     temple: &mut Temple,
     tx: Sender<Decree>,
     token: Token,
 ) -> Result<(), Sin> {
-    if terms.len() != 3 {
+    let mut terms_iter = terms.into_iter();
+    terms_iter.next();
+
+    if let (Some(key), Some(field)) = (terms_iter.next(), terms_iter.next()) {
+        temple.hget(tx, key, field, token);
+    } else {
         if tx
             .send(Decree::Deliver(Gift {
                 token,
-                response: Response::Error(Sacrilege::IncorrectNumberOfArguments(Command::GET)),
+                response: Response::Error(Sacrilege::IncorrectNumberOfArguments(Command::HGET)),
             }))
             .is_err()
         {
             eprintln!("angel panicked");
         };
-
-        return Ok(());
     }
-
-    temple.hget(tx, terms[1].clone(), terms[2].clone(), token);
 
     Ok(())
 }

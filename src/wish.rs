@@ -1,5 +1,5 @@
-use crate::{temple::{Temple}, wish::grant::{Decree}};
-use mio::{net::TcpStream, Token};
+use crate::{temple::Temple, wish::grant::Decree};
+use mio::{Token, net::TcpStream};
 use std::{io::Read, sync::mpsc::Sender};
 
 pub enum Phase {
@@ -39,18 +39,18 @@ pub enum Command {
     DEL,
     HSET,
     HGET,
-    HMGET
+    HMGET,
 }
 
 pub enum Sacrilege {
     IncorrectNumberOfArguments(Command),
     IncorrectUsage(Command),
-    UnknownCommand
+    UnknownCommand,
 }
 
 pub enum InfoType {
     Ok,
-    Pong
+    Pong,
 }
 
 pub enum Response {
@@ -164,10 +164,12 @@ pub fn wish(pilgrim: &mut Pilgrim, mut temple: Temple, token: Token) -> Result<(
                     virtue.phase = Phase::GraspingMarker;
 
                     if virtue.terms.len() == virtue.expected_terms {
-                        grant::grant(&virtue.terms, &mut temple, pilgrim.tx.clone(), token)?;
+                        let terms_to_grant = std::mem::take(&mut virtue.terms);
 
-                        virtue.terms.clear();
+                        grant::grant(terms_to_grant, &mut temple, pilgrim.tx.clone(), token)?;
+
                         virtue.phase = Phase::Idle;
+                        virtue.expected_terms = 0;
                     }
                 } else {
                     break;

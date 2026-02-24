@@ -9,14 +9,12 @@ use mio::Token;
 use std::sync::mpsc::Sender;
 
 pub fn hmget(
-    terms: &[Vec<u8>],
+    terms: Vec<Vec<u8>>,
     temple: &mut Temple,
     tx: Sender<Decree>,
     token: Token,
 ) -> Result<(), Sin> {
-    let terms_len = terms.len();
-
-    if terms_len < 3 {
+    if terms.len() < 3 {
         if tx
             .send(Decree::Deliver(Gift {
                 token,
@@ -30,19 +28,12 @@ pub fn hmget(
         return Ok(());
     }
 
-    let key = terms[1].clone();
+    let mut terms_iter = terms.into_iter();
+    terms_iter.next();
 
-    let mut fields = Vec::new();
-
-    let mut idx = 2;
-
-    while idx < terms_len {
-        fields.push(terms[idx].clone());
-
-        idx += 1;
+    if let Some(key) = terms_iter.next() {
+        temple.hmget(tx, key, terms_iter.collect(), token);
     }
-
-    temple.hmget(tx, key, fields, token);
 
     Ok(())
 }

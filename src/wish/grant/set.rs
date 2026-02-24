@@ -3,7 +3,7 @@ use mio::Token;
 use crate::{
     temple::{Temple, Value},
     wish::{
-        Command, Sacrilege, Response, Sin,
+        Command, Response, Sacrilege, Sin,
         grant::{Decree, Gift},
     },
 };
@@ -11,50 +11,80 @@ use crate::{
 use std::{sync::mpsc::Sender, time::SystemTime};
 
 pub fn set(
-    terms: &[Vec<u8>],
+    terms: Vec<Vec<u8>>,
     temple: &mut Temple,
     tx: Sender<Decree>,
     token: Token,
 ) -> Result<(), Sin> {
-    let terms_len = terms.len();
+    let mut terms_iter = terms.into_iter();
+    terms_iter.next();
 
-    if terms_len < 3 {
-        if tx.send(Decree::Deliver(Gift {
-            token,
-            response: Response::Error(Sacrilege::IncorrectNumberOfArguments(Command::SET)),
-        })).is_err() {
-            eprintln!("angel panicked");
-        };
+    if let (Some(key), Some(value)) = (terms_iter.next(), terms_iter.next()) {
+        match terms_iter.next() {
+            Some(command) => {
+                if let (Ok("EX"), Some(expiry)) = (std::str::from_utf8(&command), terms_iter.next())
+                {
+                    if let Ok(expiry) = std::str::from_utf8(&expiry) {
+                        if let Ok(expiry) = expiry.parse::<u64>() {
+                            temple.set(
+                                key,
+                                (
+                                    Value::String(value),
+                                    Some(
+                                        SystemTime::now() + std::time::Duration::from_secs(expiry),
+                                    ),
+                                ),
+                                tx,
+                                token,
+                            );
 
-        return Ok(());
-    }
-
-    if terms_len == 3 {
-        temple.set(
-            terms[1].clone(),
-            (Value::String(terms[2].clone()), None),
-            tx,
-            token,
-        );
-    } else if terms_len == 5 {
-        if let Ok(command) = std::str::from_utf8(&terms[3]) {
-            if command.to_uppercase() == "EX" {
-                if let Ok(expiry) = std::str::from_utf8(&terms[4]) {
-                    if let Ok(expiry) = expiry.parse::<u64>() {
-                        temple.set(
-                            terms[1].clone(),
-                            (
-                                Value::String(terms[2].clone()),
-                                Some(SystemTime::now() + std::time::Duration::from_secs(expiry)),
-                            ),
-                            tx,
-                            token,
-                        );
+                            return Ok(());
+                        }
                     }
+
+                    if tx
+                        .send(Decree::Deliver(Gift {
+                            token,
+                            response: Response::Error(Sacrilege::IncorrectUsage(Command::SET)),
+                        }))
+                        .is_err()
+                    {
+                        eprintln!("angel panicked")
+                    };
+
+                    return Ok(())
+                } else {
+                    if tx
+                        .send(Decree::Deliver(Gift {
+                            token,
+                            response: Response::Error(Sacrilege::IncorrectNumberOfArguments(
+                                Command::SET,
+                            )),
+                        }))
+                        .is_err()
+                    {
+                        eprintln!("angel panicked")
+                    };
+
+                    return Ok(());
                 }
             }
+            None => {
+                temple.set(key, (Value::String(value), None), tx, token);
+                return Ok(());
+            }
         }
-    }
+    } else {
+        if tx
+            .send(Decree::Deliver(Gift {
+                token,
+                response: Response::Error(Sacrilege::IncorrectNumberOfArguments(Command::SET)),
+            }))
+            .is_err()
+        {
+            eprintln!("angel panicked")
+        };
 
-    Ok(())
+        return Ok(())
+    }
 }

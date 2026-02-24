@@ -2,28 +2,37 @@ use mio::Token;
 
 use crate::{
     temple::Temple,
-    wish::{grant::{Decree, Gift}, Command, Sacrilege, Response, Sin},
+    wish::{
+        Command, Response, Sacrilege, Sin,
+        grant::{Decree, Gift},
+    },
 };
 use std::sync::mpsc::Sender;
 
 pub fn del(
-    terms: &[Vec<u8>],
+    terms: Vec<Vec<u8>>,
     temple: &mut Temple,
     tx: Sender<Decree>,
     token: Token,
 ) -> Result<(), Sin> {
     if terms.len() < 2 {
-        if tx.send(Decree::Deliver(Gift {
-            token,
-            response: Response::Error(Sacrilege::IncorrectNumberOfArguments(Command::DEL)),
-        })).is_err() {
+        if tx
+            .send(Decree::Deliver(Gift {
+                token,
+                response: Response::Error(Sacrilege::IncorrectNumberOfArguments(Command::DEL)),
+            }))
+            .is_err()
+        {
             eprintln!("angel panicked");
         };
 
         return Ok(());
     }
 
-    temple.del(terms[1..].to_vec(), tx, token);
+    let mut terms_iter = terms.into_iter();
+    terms_iter.next();
+
+    temple.del(terms_iter.collect(), tx, token);
 
     Ok(())
 }
