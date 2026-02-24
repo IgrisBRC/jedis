@@ -1,7 +1,10 @@
 use mio::net::TcpStream;
 use std::io::Write;
 
-use crate::{temple::Value, wish::{grant::Gift, InfoType, Response, Sin}};
+use crate::{
+    temple::Value,
+    wish::{InfoType, Response, Sin, grant::Gift},
+};
 
 pub fn egress(stream: &mut TcpStream, gift: Gift) -> Result<(), Sin> {
     let mut response: Vec<u8> = Vec::new();
@@ -14,11 +17,30 @@ pub fn egress(stream: &mut TcpStream, gift: Gift) -> Result<(), Sin> {
             response.append(&mut b"+PONG\r\n".to_vec());
         }
         Response::BulkString(bulk_string) => match bulk_string {
-            Some((value, _)) => {
-                if let Value::String(mut value) = value {
-                    response.append(&mut format!("${}\r\n", value.len()).into_bytes());
-                    response.append(&mut value);
-                    response.append(&mut "\r\n".as_bytes().to_vec());
+            Some(mut value) => {
+                response.append(&mut format!("${}\r\n", value.len()).into_bytes());
+                response.append(&mut value);
+                response.append(&mut "\r\n".as_bytes().to_vec());
+            }
+            None => {
+                response.append(&mut b"$-1\r\n".to_vec());
+            }
+        },
+        Response::BulkStringArray(bulk_string_array) => match bulk_string_array {
+            Some(bulk_string_array) => {
+                response.append(&mut format!("*{}\r\n", bulk_string_array.len()).into_bytes());
+
+                for bulk_string in bulk_string_array {
+                    match bulk_string {
+                        Some(mut value) => {
+                            response.append(&mut format!("${}\r\n", value.len()).into_bytes());
+                            response.append(&mut value);
+                            response.append(&mut "\r\n".as_bytes().to_vec());
+                        }
+                        None => {
+                            response.append(&mut b"$-1\r\n".to_vec());
+                        }
+                    }
                 }
             }
             None => {
@@ -28,20 +50,13 @@ pub fn egress(stream: &mut TcpStream, gift: Gift) -> Result<(), Sin> {
         Response::Amount(amount) => {
             response.append(&mut format!(":{}\r\n", amount).into_bytes());
         }
-        Response::Number(number) => match number {
-            Some(number) => {
-                let mut number_string = number.to_string().into_bytes();
+        Response::Number(number) => {
+            let mut number_string = number.to_string().into_bytes();
 
-                response.push(b':');
-                response.append(&mut number_string);
-                response.append(&mut "\r\n".as_bytes().to_vec());
-            }
-            None => {
-                response.append(&mut
-                    b"-ERR I don't know what you might have done to get this one.".to_vec(),
-                );
-            }
-        },
+            response.push(b':');
+            response.append(&mut number_string);
+            response.append(&mut "\r\n".as_bytes().to_vec());
+        }
         Response::Length(length) => {
             response.append(&mut format!(":{}\r\n", length).into_bytes());
         }

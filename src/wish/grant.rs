@@ -2,7 +2,7 @@ use mio::Token;
 
 use crate::{
     temple::Temple,
-    wish::{ErrorType, InfoType, Response, Sin},
+    wish::{Sacrilege, InfoType, Response, Sin},
 };
 
 use std::sync::mpsc::Sender;
@@ -15,6 +15,9 @@ mod get;
 mod incr;
 mod ping;
 mod set;
+mod hset;
+mod hget;
+mod hmget;
 
 pub struct Gift {
     pub token: mio::Token,
@@ -45,6 +48,9 @@ pub fn grant(
         "INCR" => incr::incr(terms, temple, tx, token)?,
         "DECR" => decr::decr(terms, temple, tx, token)?,
         "APPEND" => append::append(terms, temple, tx, token)?,
+        "HSET" => hset::hset(terms, temple, tx, token)?,
+        "HGET" => hget::hget(terms, temple, tx, token)?,
+        "HMGET" => hmget::hmget(terms, temple, tx, token)?,
         "COMMAND" => {
             if tx.send(Decree::Deliver(Gift {
                 token: token,
@@ -68,7 +74,7 @@ pub fn grant(
         _ => {
             if tx.send(Decree::Deliver(Gift {
                 token: token,
-                response: Response::Error(ErrorType::UnknownCommand),
+                response: Response::Error(Sacrilege::UnknownCommand),
             })).is_err() {
                 eprintln!("angel panicked");
             };

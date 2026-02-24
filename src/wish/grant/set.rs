@@ -3,7 +3,7 @@ use mio::Token;
 use crate::{
     temple::{Temple, Value},
     wish::{
-        Command, ErrorType, Response, Sin,
+        Command, Sacrilege, Response, Sin,
         grant::{Decree, Gift},
     },
 };
@@ -21,7 +21,7 @@ pub fn set(
     if terms_len < 3 {
         if tx.send(Decree::Deliver(Gift {
             token,
-            response: Response::Error(ErrorType::IncorrectNumberOfArguments(Command::SET)),
+            response: Response::Error(Sacrilege::IncorrectNumberOfArguments(Command::SET)),
         })).is_err() {
             eprintln!("angel panicked");
         };

@@ -1,6 +1,6 @@
-use crate::{temple::{Temple, Value}, wish::grant::{Decree, Gift}};
+use crate::{temple::{Temple}, wish::grant::{Decree}};
 use mio::{net::TcpStream, Token};
-use std::{io::Read, sync::mpsc::Sender, time::SystemTime};
+use std::{io::Read, sync::mpsc::Sender};
 
 pub enum Phase {
     Idle,
@@ -37,9 +37,12 @@ pub enum Command {
     APPEND,
     EXISTS,
     DEL,
+    HSET,
+    HGET,
+    HMGET
 }
 
-pub enum ErrorType {
+pub enum Sacrilege {
     IncorrectNumberOfArguments(Command),
     IncorrectUsage(Command),
     UnknownCommand
@@ -51,11 +54,12 @@ pub enum InfoType {
 }
 
 pub enum Response {
-    Error(ErrorType),
+    Error(Sacrilege),
     Info(InfoType),
-    BulkString(Option<(Value, Option<SystemTime>)>),
+    BulkString(Option<Vec<u8>>),
+    BulkStringArray(Option<Vec<Option<Vec<u8>>>>),
     Amount(u32),
-    Number(Option<i64>),
+    Number(i64),
     Length(usize),
 }
 

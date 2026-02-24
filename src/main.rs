@@ -70,13 +70,11 @@ fn main() {
             ingress_map.insert(token, pilgrim);
 
             if let Some(p) = ingress_map.get_mut(&token) {
-                poll.registry()
-                    .reregister(
-                        &mut p.stream,
-                        token,
-                        Interest::READABLE | Interest::WRITABLE,
-                    )
-                    .expect("Failed to reregister pilgrim in test");
+                poll.registry().reregister(
+                    &mut p.stream,
+                    token,
+                    Interest::READABLE | Interest::WRITABLE,
+                );
             }
         }
 
@@ -92,7 +90,7 @@ fn main() {
             .poll(&mut events, Some(std::time::Duration::from_millis(10)))
             .is_err()
         {
-            eprintln!("poll() gone wrong");
+            eprintln!("poll() failed");
         }
 
         for event in &events {
@@ -112,7 +110,7 @@ fn main() {
                                 )
                                 .is_err()
                             {
-                                eprintln!("register() gone wrong");
+                                eprintln!("register() failed");
                             }
 
                             let std_stream: TcpStream = stream.into();

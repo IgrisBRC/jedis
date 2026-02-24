@@ -5,7 +5,7 @@ use mio::Token;
 use crate::{
     temple::{Temple, Value},
     wish::{
-        Command, ErrorType, Response, Sin,
+        Command, Sacrilege, Response, Sin,
         grant::{Decree, Gift},
     },
 };
@@ -19,7 +19,7 @@ pub fn incr(
     if terms.len() < 2 {
         if tx.send(Decree::Deliver(Gift {
             token,
-            response: Response::Error(ErrorType::IncorrectNumberOfArguments(Command::INCR)),
+            response: Response::Error(Sacrilege::IncorrectNumberOfArguments(Command::INCR)),
         })).is_err() {
             eprintln!("angel panicked");
         };

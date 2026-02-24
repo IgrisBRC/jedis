@@ -2,7 +2,7 @@ use mio::Token;
 
 use crate::{
     temple::Temple,
-    wish::{grant::{Decree, Gift}, Command, ErrorType, Response, Sin},
+    wish::{grant::{Decree, Gift}, Command, Sacrilege, Response, Sin},
 };
 use std::sync::mpsc::Sender;
 
@@ -15,7 +15,7 @@ pub fn del(
     if terms.len() < 2 {
         if tx.send(Decree::Deliver(Gift {
             token,
-            response: Response::Error(ErrorType::IncorrectNumberOfArguments(Command::DEL)),
+            response: Response::Error(Sacrilege::IncorrectNumberOfArguments(Command::DEL)),
         })).is_err() {
             eprintln!("angel panicked");
         };
