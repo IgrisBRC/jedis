@@ -1,4 +1,4 @@
-use std::sync::mpsc::Sender;
+use std::{sync::mpsc::Sender, time::SystemTime};
 
 use mio::Token;
 
@@ -19,8 +19,8 @@ pub fn lindex(
     terms_iter.next();
 
     if let (Some(key), Some(index)) = (terms_iter.next(), terms_iter.next()) {
-        if let Some(index) = bytes_to_i32(&index) {
-            temple.lindex(tx, key, index, token);
+        if let Ok(index) = bytes_to_i32(&index) {
+            temple.lindex(tx, key, index, token, SystemTime::now());
         } else if tx
             .send(Decree::Deliver(Gift {
                 token,

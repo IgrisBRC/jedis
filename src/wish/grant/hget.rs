@@ -1,4 +1,4 @@
-use std::sync::mpsc::Sender;
+use std::{sync::mpsc::Sender, time::SystemTime};
 
 use mio::Token;
 
@@ -20,7 +20,7 @@ pub fn hget(
     terms_iter.next();
 
     if let (Some(key), Some(field)) = (terms_iter.next(), terms_iter.next()) {
-        temple.hget(tx, key, field, token);
+        temple.hget(tx, key, field, token, SystemTime::now());
     } else if tx
         .send(Decree::Deliver(Gift {
             token,

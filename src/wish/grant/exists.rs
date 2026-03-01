@@ -7,7 +7,7 @@ use crate::{
         grant::{Decree, Gift},
     },
 };
-use std::sync::mpsc::Sender;
+use std::{sync::mpsc::Sender, time::SystemTime};
 
 pub fn exists(
     terms: Vec<Vec<u8>>,
@@ -31,7 +31,7 @@ pub fn exists(
     let mut terms_iter = terms.into_iter();
     terms_iter.next();
 
-    temple.exists(terms_iter.collect(), tx, token);
+    temple.exists(terms_iter.collect(), tx, token, SystemTime::now());
 
     Ok(())
 }

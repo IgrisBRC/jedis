@@ -1,4 +1,7 @@
-use crate::{temple::Temple, wish::grant::Decree};
+use crate::{
+    temple::Temple,
+    wish::{grant::Decree, util::bytes_to_usize},
+};
 use mio::{Token, net::TcpStream};
 use std::{io::Read, sync::mpsc::Sender};
 
@@ -52,7 +55,8 @@ pub enum Command {
     LRANGE,
     LINDEX,
     LSET,
-    LREM
+    LREM,
+    EXPIRE,
 }
 
 pub enum Sacrilege {
@@ -91,7 +95,7 @@ pub enum Sin {
 }
 
 pub mod grant;
-mod util;
+pub mod util;
 
 pub fn wish(pilgrim: &mut Pilgrim, mut temple: Temple, token: Token) -> Result<(), Sin> {
     let virtue = pilgrim.virtue.get_or_insert_with(Virtue::new);
@@ -124,10 +128,12 @@ pub fn wish(pilgrim: &mut Pilgrim, mut temple: Temple, token: Token) -> Result<(
             }
             Phase::AwaitingTermCount => {
                 if let Some(index) = util::find_crlf(&virtue.backlog) {
-                    virtue.expected_terms = std::str::from_utf8(&virtue.backlog[..index])
-                        .map_err(|_| Sin::Utf8Error)?
-                        .parse()
-                        .map_err(|_| Sin::ParseError)?;
+                    virtue.expected_terms = bytes_to_usize(&virtue.backlog[..index])?;
+
+                    // virtue.expected_terms = std::str::from_utf8(&virtue.backlog[..index])
+                    //     .map_err(|_| Sin::Utf8Error)?
+                    //     .parse()
+                    //     .map_err(|_| Sin::ParseError)?;
 
                     if virtue.expected_terms == 0 {
                         return Err(Sin::Blasphemy);
@@ -150,10 +156,12 @@ pub fn wish(pilgrim: &mut Pilgrim, mut temple: Temple, token: Token) -> Result<(
             }
             Phase::AwaitingBulkStringLength => {
                 if let Some(index) = util::find_crlf(&virtue.backlog) {
-                    let bulk_string_length = std::str::from_utf8(&virtue.backlog[..index])
-                        .map_err(|_| Sin::Utf8Error)?
-                        .parse()
-                        .map_err(|_| Sin::ParseError)?;
+                    let bulk_string_length = bytes_to_usize(&virtue.backlog[..index])?;
+
+                    // let bulk_string_length = std::str::from_utf8(&virtue.backlog[..index])
+                    //     .map_err(|_| Sin::Utf8Error)?
+                    //     .parse()
+                    //     .map_err(|_| Sin::ParseError)?;
 
                     virtue.phase = Phase::AwaitingBulkString(bulk_string_length);
                     virtue.backlog.drain(..index + 2);

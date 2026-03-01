@@ -1,4 +1,4 @@
-use std::sync::mpsc::Sender;
+use std::{sync::mpsc::Sender, time::SystemTime};
 
 use mio::Token;
 
@@ -7,6 +7,7 @@ use crate::{
     wish::{
         Command, Response, Sacrilege, Sin,
         grant::{Decree, Gift},
+        util::bytes_to_usize,
     },
 };
 
@@ -21,12 +22,11 @@ pub fn lpop(
 
     if let Some(key) = terms_iter.next() {
         if let Some(count) = terms_iter.next() {
-            if let Ok(count) = std::str::from_utf8(&count)
-                && let Ok(count) = count.parse::<usize>() {
-                    temple.lpop_m(tx, key, count, token);
+            if let Ok(count) = bytes_to_usize(&count) {
+                temple.lpop_m(tx, key, count, token, SystemTime::now());
 
-                    return Ok(());
-                }
+                return Ok(());
+            }
 
             if tx
                 .send(Decree::Deliver(Gift {
@@ -41,7 +41,7 @@ pub fn lpop(
             return Ok(());
         }
 
-        temple.lpop(tx, key, token);
+        temple.lpop(tx, key, token, SystemTime::now());
     } else if tx
         .send(Decree::Deliver(Gift {
             token,

@@ -1,4 +1,4 @@
-use std::sync::mpsc::Sender;
+use std::{sync::mpsc::Sender, time::SystemTime};
 
 use mio::Token;
 
@@ -36,7 +36,7 @@ pub fn lrange(
         return Ok(());
     };
 
-    let (Some(starting_index), Some(ending_index)) =
+    let (Ok(starting_index), Ok(ending_index)) =
         (bytes_to_i32(&starting_index), bytes_to_i32(&ending_index))
     else {
 
@@ -53,7 +53,7 @@ pub fn lrange(
         return Ok(());
     };
 
-    temple.lrange(tx, key, starting_index, ending_index, token);
+    temple.lrange(tx, key, starting_index, ending_index, token, SystemTime::now());
 
     Ok(())
 }

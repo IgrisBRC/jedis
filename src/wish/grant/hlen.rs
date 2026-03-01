@@ -1,4 +1,4 @@
-use std::sync::mpsc::Sender;
+use std::{sync::mpsc::Sender, time::SystemTime};
 
 use mio::Token;
 
@@ -20,7 +20,7 @@ pub fn hlen(
     terms_iter.next();
 
     if let Some(key) = terms_iter.next() {
-        temple.hlen(tx, key, token);
+        temple.hlen(tx, key, token, SystemTime::now());
     } else if tx
         .send(Decree::Deliver(Gift {
             token,

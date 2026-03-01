@@ -1,4 +1,4 @@
-use std::sync::mpsc::Sender;
+use std::{sync::mpsc::Sender, time::SystemTime};
 
 use mio::Token;
 
@@ -36,7 +36,7 @@ pub fn lset(
         return Ok(());
     };
 
-    let Some(index) = bytes_to_i32(&index) else {
+    let Ok(index) = bytes_to_i32(&index) else {
         if tx
             .send(Decree::Deliver(Gift {
                 token,
@@ -50,7 +50,7 @@ pub fn lset(
         return Ok(());
     };
 
-    temple.lset(tx, key, index, element, token);
+    temple.lset(tx, key, index, element, token, SystemTime::now());
 
     Ok(())
 }

@@ -6,7 +6,7 @@ use crate::{
     },
 };
 use mio::Token;
-use std::sync::mpsc::Sender;
+use std::{sync::mpsc::Sender, time::SystemTime};
 
 pub fn hmget(
     terms: Vec<Vec<u8>>,
@@ -32,7 +32,7 @@ pub fn hmget(
     terms_iter.next();
 
     if let Some(key) = terms_iter.next() {
-        temple.hmget(tx, key, terms_iter.collect(), token);
+        temple.hmget(tx, key, terms_iter.collect(), token, SystemTime::now());
     }
 
     Ok(())

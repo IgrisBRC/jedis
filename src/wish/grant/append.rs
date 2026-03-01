@@ -1,4 +1,4 @@
-use std::sync::mpsc::Sender;
+use std::{sync::mpsc::Sender, time::SystemTime};
 
 use mio::Token;
 
@@ -20,7 +20,7 @@ pub fn append(
     terms_iter.next();
 
     if let (Some(key), Some(value)) = (terms_iter.next(), terms_iter.next()) {
-        temple.append(key, Value::String(value), tx, token);
+        temple.append(key, value, tx, token, SystemTime::now());
     } else if tx
         .send(Decree::Deliver(Gift {
             token,

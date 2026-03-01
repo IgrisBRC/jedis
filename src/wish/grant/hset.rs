@@ -7,7 +7,7 @@ use crate::{
         grant::{Decree, Gift},
     },
 };
-use std::sync::mpsc::Sender;
+use std::{sync::mpsc::Sender, time::SystemTime};
 
 pub fn hset(
     terms: Vec<Vec<u8>>,
@@ -40,7 +40,7 @@ pub fn hset(
             field_value_pairs.push((field, value));
         }
 
-        temple.hset(key, field_value_pairs, tx, token);
+        temple.hset(key, field_value_pairs, tx, token, SystemTime::now());
     }
 
     Ok(())

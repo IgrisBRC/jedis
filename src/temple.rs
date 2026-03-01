@@ -6,6 +6,7 @@ use std::{collections::HashMap, time::SystemTime};
 use mio::Token;
 
 use crate::wish::grant::{Decree, Gift};
+use crate::wish::util::bytes_to_i64;
 use crate::wish::{Command, InfoType, Response, Sacrilege};
 
 #[derive(Clone)]
@@ -29,24 +30,11 @@ impl Soul {
         Soul(HashMap::new())
     }
 
-    pub fn get(&mut self, key: Vec<u8>) -> Result<Option<Vec<u8>>, Sacrilege> {
-        match self.0.entry(key) {
-            Entry::Occupied(occupied) => {
-                let (value, expiry) = occupied.get();
-
-                if let Some(time) = expiry
-                    && *time < SystemTime::now() {
-                        occupied.remove();
-                        return Ok(None);
-                    }
-
-                if let Value::String(value) = value {
-                    Ok(Some(value.to_vec()))
-                } else {
-                    Err(Sacrilege::IncorrectUsage(Command::GET))
-                }
-            }
-            Entry::Vacant(_) => Ok(None),
+    pub fn get(&mut self, key: Vec<u8>, now: SystemTime) -> Result<Option<Vec<u8>>, Sacrilege> {
+        match self.get_valid_value(&key, now) {
+            Some(Value::String(value)) => return Ok(Some(value.clone())),
+            Some(_) => Err(Sacrilege::IncorrectUsage(Command::GET)),
+            None => return Ok(None),
         }
     }
 
@@ -54,129 +42,83 @@ impl Soul {
         self.0.insert(key, val);
     }
 
-    pub fn append(&mut self, key: Vec<u8>, incoming_value: Value) -> usize {
-        let Value::String(mut incoming_value) = incoming_value else {
-            return 0;
-        };
-
-        let entry = self.0.remove(&key);
-
-        match entry {
-            Some((Value::String(mut existing_value), Some(time))) if time >= SystemTime::now() => {
-                existing_value.append(&mut incoming_value);
-
-                let length = existing_value.len();
-
-                self.0
-                    .insert(key, (Value::String(existing_value), Some(time)));
-
-                length
+    pub fn append(
+        &mut self,
+        key: Vec<u8>,
+        mut incoming_value: Vec<u8>,
+        now: SystemTime,
+    ) -> Result<usize, Sacrilege> {
+        match self.get_mut_valid_value(&key, now) {
+            Some(Value::String(value)) => {
+                value.append(&mut incoming_value);
+                return Ok(value.len());
             }
-            Some((Value::String(mut existing_value), None)) => {
-                existing_value.append(&mut incoming_value);
-
-                let length = existing_value.len();
-
-                self.0.insert(key, (Value::String(existing_value), None));
-
-                length
-            }
-            Some((_, _)) => 0,
+            Some(_) => Err(Sacrilege::IncorrectUsage(Command::APPEND)),
             None => {
-                let length = incoming_value.len();
-
+                let incoming_value_len = incoming_value.len();
                 self.0.insert(key, (Value::String(incoming_value), None));
-
-                length
+                Ok(incoming_value_len)
             }
         }
     }
 
-    pub fn incr(&mut self, key: Vec<u8>) -> Result<i64, Sacrilege> {
-        let entry = self.0.remove(&key);
+    pub fn incr(&mut self, key: Vec<u8>, now: SystemTime) -> Result<i64, Sacrilege> {
+        match self.get_mut_valid_value(&key, now) {
+            Some(Value::String(value)) => {
+                let Ok(mut number) = bytes_to_i64(value) else {
+                    return Err(Sacrilege::IncorrectUsage(Command::INCR));
+                };
 
-        match entry {
-            Some((Value::String(existing_value), expiry)) => {
-                if let Ok(existing_value) = std::str::from_utf8(&existing_value)
-                    && let Ok(existing_value) = existing_value.parse::<i64>() {
-                        self.0.insert(
-                            key,
-                            (
-                                Value::String((existing_value + 1).to_string().into_bytes()),
-                                expiry,
-                            ),
-                        );
+                number += 1;
 
-                        return Ok(existing_value + 1);
-                    }
+                value.clear();
+                value.extend_from_slice(number.to_string().as_bytes());
 
-                self.0.insert(key, (Value::String(existing_value), expiry));
-                Err(Sacrilege::IncorrectUsage(Command::INCR))
+                Ok(number)
             }
-
-            Some((other_value, expiry)) => {
-                self.0.insert(key, (other_value, expiry));
-                Err(Sacrilege::IncorrectUsage(Command::INCR))
-            }
-
+            Some(_) => Err(Sacrilege::IncorrectUsage(Command::INCR)),
             None => {
-                let initial = Value::String(b"1".to_vec());
-                self.0.insert(key, (initial, None));
-
+                self.0.insert(key, (Value::String(b"1".into()), None));
                 Ok(1)
             }
         }
     }
 
-    pub fn decr(&mut self, key: Vec<u8>) -> Result<i64, Sacrilege> {
-        let entry = self.0.remove(&key);
+    pub fn decr(&mut self, key: Vec<u8>, now: SystemTime) -> Result<i64, Sacrilege> {
+        match self.get_mut_valid_value(&key, now) {
+            Some(Value::String(value)) => {
+                let Ok(mut number) = bytes_to_i64(value) else {
+                    return Err(Sacrilege::IncorrectUsage(Command::DECR));
+                };
 
-        match entry {
-            Some((Value::String(existing_value), expiry)) => {
-                if let Ok(existing_value) = std::str::from_utf8(&existing_value)
-                    && let Ok(existing_value) = existing_value.parse::<i64>() {
-                        self.0.insert(
-                            key,
-                            (
-                                Value::String((existing_value - 1).to_string().into_bytes()),
-                                expiry,
-                            ),
-                        );
+                number -= 1;
 
-                        return Ok(existing_value - 1);
-                    }
+                value.clear();
+                value.extend_from_slice(number.to_string().as_bytes());
 
-                self.0.insert(key, (Value::String(existing_value), expiry));
-                Err(Sacrilege::IncorrectUsage(Command::DECR))
+                Ok(number)
             }
-
-            Some((existing_value, expiry)) => {
-                self.0.insert(key, (existing_value, expiry));
-                Err(Sacrilege::IncorrectUsage(Command::DECR))
-            }
-
+            Some(_) => Err(Sacrilege::IncorrectUsage(Command::DECR)),
             None => {
-                let initial = Value::String(b"-1".to_vec());
-                self.0.insert(key, (initial, None));
-
+                self.0.insert(key, (Value::String(b"-1".into()), None));
                 Ok(-1)
             }
         }
     }
 
-    pub fn strlen(&self, key: Vec<u8>) -> Result<usize, Sacrilege> {
-        match self.0.get(&key) {
-            Some((Value::String(value), _)) => Ok(value.len()),
+    pub fn strlen(&self, key: Vec<u8>, now: SystemTime) -> Result<usize, Sacrilege> {
+        match self.get_valid_value(&key, now) {
+            Some(Value::String(value)) => Ok(value.len()),
             Some(_) => Err(Sacrilege::IncorrectUsage(Command::STRLEN)),
             None => Ok(0),
         }
     }
 
-    pub fn del(&mut self, keys: Vec<Vec<u8>>) -> u32 {
+    pub fn del(&mut self, keys: Vec<Vec<u8>>, now: SystemTime) -> u32 {
         let mut number_of_entries_deleted = 0;
 
         for key in keys {
-            if self.0.remove(&key).is_some() {
+            if self.remove_valid_value(&key, now).is_some() {
                 number_of_entries_deleted += 1;
             }
         }
@@ -184,11 +126,11 @@ impl Soul {
         number_of_entries_deleted
     }
 
-    pub fn exists(&self, keys: Vec<Vec<u8>>) -> u32 {
+    pub fn exists(&self, keys: Vec<Vec<u8>>, now: SystemTime) -> u32 {
         let mut number_of_entries_that_exist = 0;
 
         for key in keys {
-            if self.0.contains_key(&key) {
+            if self.get_valid_value(&key, now).is_some() {
                 number_of_entries_that_exist += 1;
             }
         }
@@ -200,9 +142,10 @@ impl Soul {
         &mut self,
         key: Vec<u8>,
         field_value_pairs: Vec<(Vec<u8>, Vec<u8>)>,
+        now: SystemTime,
     ) -> Result<u32, Sacrilege> {
-        match self.0.get_mut(&key) {
-            Some((Value::Hash(map), _)) => {
+        match self.get_mut_valid_value(&key, now) {
+            Some(Value::Hash(map)) => {
                 let mut new_values_added = 0;
 
                 for field_value_pair in field_value_pairs {
@@ -234,9 +177,14 @@ impl Soul {
         }
     }
 
-    pub fn hget(&mut self, key: Vec<u8>, field: Vec<u8>) -> Result<Option<Vec<u8>>, Sacrilege> {
-        match self.0.get(&key) {
-            Some((Value::Hash(map), _)) => Ok(map.get(&field).cloned()),
+    pub fn hget(
+        &mut self,
+        key: Vec<u8>,
+        field: Vec<u8>,
+        now: SystemTime,
+    ) -> Result<Option<Vec<u8>>, Sacrilege> {
+        match self.get_valid_value(&key, now) {
+            Some(Value::Hash(map)) => Ok(map.get(&field).cloned()),
             Some(_) => Err(Sacrilege::IncorrectUsage(Command::HGET)),
             None => Ok(None),
         }
@@ -246,27 +194,33 @@ impl Soul {
         &mut self,
         key: Vec<u8>,
         fields: Vec<Vec<u8>>,
+        now: SystemTime,
     ) -> Result<Option<Vec<Option<Vec<u8>>>>, Sacrilege> {
         let mut values = Vec::new();
 
-        match self.0.get(&key) {
-            Some((Value::Hash(map), _)) => {
+        match self.get_valid_value(&key, now) {
+            Some(Value::Hash(map)) => {
                 for field in fields {
                     values.push(map.get(&field).cloned());
                 }
 
                 Ok(Some(values))
             }
-            Some(_) => Err(Sacrilege::IncorrectUsage(Command::HGET)),
+            Some(_) => Err(Sacrilege::IncorrectUsage(Command::HMGET)),
             None => Ok(None),
         }
     }
 
-    pub fn hdel(&mut self, key: Vec<u8>, fields: Vec<Vec<u8>>) -> Result<u32, Sacrilege> {
+    pub fn hdel(
+        &mut self,
+        key: Vec<u8>,
+        fields: Vec<Vec<u8>>,
+        now: SystemTime,
+    ) -> Result<u32, Sacrilege> {
         let mut amount_of_deleted_values = 0;
 
-        match self.0.get_mut(&key) {
-            Some((Value::Hash(map), _)) => {
+        match self.get_mut_valid_value(&key, now) {
+            Some(Value::Hash(map)) => {
                 for field in fields {
                     if map.remove(&field).is_some() {
                         amount_of_deleted_values += 1
@@ -280,9 +234,14 @@ impl Soul {
         }
     }
 
-    pub fn hexists(&mut self, key: Vec<u8>, field: Vec<u8>) -> Result<u32, Sacrilege> {
-        match self.0.get(&key) {
-            Some((Value::Hash(map), _)) => {
+    pub fn hexists(
+        &mut self,
+        key: Vec<u8>,
+        field: Vec<u8>,
+        now: SystemTime,
+    ) -> Result<u32, Sacrilege> {
+        match self.get_valid_value(&key, now) {
+            Some(Value::Hash(map)) => {
                 if map.get(&field).is_some() {
                     Ok(1)
                 } else {
@@ -294,47 +253,51 @@ impl Soul {
         }
     }
 
-    pub fn hlen(&mut self, key: Vec<u8>) -> Result<usize, Sacrilege> {
-        match self.0.get(&key) {
-            Some((Value::Hash(map), _)) => Ok(map.len()),
+    pub fn hlen(&mut self, key: Vec<u8>, now: SystemTime) -> Result<usize, Sacrilege> {
+        match self.get_valid_value(&key, now) {
+            Some(Value::Hash(map)) => Ok(map.len()),
             Some(_) => Err(Sacrilege::IncorrectUsage(Command::HLEN)),
             None => Ok(0),
         }
     }
 
-    pub fn lpush(&mut self, key: Vec<u8>, elements: Vec<Vec<u8>>) -> Result<usize, Sacrilege> {
-        match self.0.entry(key) {
-            Entry::Occupied(mut occupied) => {
-                if let (Value::List(list), _) = occupied.get_mut() {
-                    for element in elements {
-                        list.push_front(element);
-                    }
-
-                    Ok(list.len())
-                } else {
-                    Err(Sacrilege::IncorrectUsage(Command::LPUSH))
-                }
-            }
-            Entry::Vacant(vacant) => {
-                let mut list = VecDeque::new();
-
+    pub fn lpush(
+        &mut self,
+        key: Vec<u8>,
+        mut elements: Vec<Vec<u8>>,
+        now: SystemTime,
+    ) -> Result<usize, Sacrilege> {
+        match self.get_mut_valid_value(&key, now) {
+            Some(Value::List(list)) => {
                 for element in elements {
                     list.push_front(element);
                 }
+                Ok(list.len())
+            }
+            Some(_) => Err(Sacrilege::IncorrectUsage(Command::LPUSH)),
+            None => {
+                let elements_len = elements.len();
+                elements.reverse();
 
-                let len = list.len();
+                self.0
+                    .insert(key, (Value::List(VecDeque::from(elements)), None));
 
-                vacant.insert((Value::List(list), None));
-
-                Ok(len)
+                Ok(elements_len)
             }
         }
     }
 
-    pub fn lpop(&mut self, key: Vec<u8>) -> Result<Option<Vec<u8>>, Sacrilege> {
+    pub fn lpop(&mut self, key: Vec<u8>, now: SystemTime) -> Result<Option<Vec<u8>>, Sacrilege> {
         match self.0.entry(key) {
             Entry::Occupied(mut occupied) => {
-                if let (Value::List(list), _) = occupied.get_mut() {
+                if let (Value::List(list), expiry) = occupied.get_mut() {
+                    if let Some(expiry) = expiry {
+                        if *expiry < now {
+                            occupied.remove();
+                            return Ok(None);
+                        }
+                    }
+
                     let element = list.pop_front();
 
                     if list.is_empty() {
@@ -354,10 +317,18 @@ impl Soul {
         &mut self,
         key: Vec<u8>,
         count: usize,
+        now: SystemTime,
     ) -> Result<Option<Vec<Option<Vec<u8>>>>, Sacrilege> {
         match self.0.entry(key) {
             Entry::Occupied(mut occupied) => {
-                if let (Value::List(list), _) = occupied.get_mut() {
+                if let (Value::List(list), expiry) = occupied.get_mut() {
+                    if let Some(expiry) = expiry {
+                        if *expiry < now {
+                            occupied.remove();
+                            return Ok(None);
+                        }
+                    }
+
                     let mut popped = Vec::new();
 
                     for _ in 0..count {
@@ -381,39 +352,42 @@ impl Soul {
         }
     }
 
-    pub fn rpush(&mut self, key: Vec<u8>, elements: Vec<Vec<u8>>) -> Result<usize, Sacrilege> {
-        match self.0.entry(key) {
-            Entry::Occupied(mut occupied) => {
-                if let (Value::List(list), _) = occupied.get_mut() {
-                    for element in elements {
-                        list.push_back(element);
-                    }
-
-                    Ok(list.len())
-                } else {
-                    Err(Sacrilege::IncorrectUsage(Command::RPUSH))
-                }
-            }
-            Entry::Vacant(vacant) => {
-                let mut list = VecDeque::new();
-
+    pub fn rpush(
+        &mut self,
+        key: Vec<u8>,
+        elements: Vec<Vec<u8>>,
+        now: SystemTime,
+    ) -> Result<usize, Sacrilege> {
+        match self.get_mut_valid_value(&key, now) {
+            Some(Value::List(list)) => {
                 for element in elements {
                     list.push_back(element);
                 }
+                Ok(list.len())
+            }
+            Some(_) => Err(Sacrilege::IncorrectUsage(Command::RPUSH)),
+            None => {
+                let elements_len = elements.len();
 
-                let len = list.len();
+                self.0
+                    .insert(key, (Value::List(VecDeque::from(elements)), None));
 
-                vacant.insert((Value::List(list), None));
-
-                Ok(len)
+                Ok(elements_len)
             }
         }
     }
 
-    pub fn rpop(&mut self, key: Vec<u8>) -> Result<Option<Vec<u8>>, Sacrilege> {
+    pub fn rpop(&mut self, key: Vec<u8>, now: SystemTime) -> Result<Option<Vec<u8>>, Sacrilege> {
         match self.0.entry(key) {
             Entry::Occupied(mut occupied) => {
-                if let (Value::List(list), _) = occupied.get_mut() {
+                if let (Value::List(list), expiry) = occupied.get_mut() {
+                    if let Some(expiry) = expiry {
+                        if *expiry < now {
+                            occupied.remove();
+                            return Ok(None);
+                        }
+                    }
+
                     let element = list.pop_back();
 
                     if list.is_empty() {
@@ -433,10 +407,18 @@ impl Soul {
         &mut self,
         key: Vec<u8>,
         count: usize,
+        now: SystemTime,
     ) -> Result<Option<Vec<Option<Vec<u8>>>>, Sacrilege> {
         match self.0.entry(key) {
             Entry::Occupied(mut occupied) => {
-                if let (Value::List(list), _) = occupied.get_mut() {
+                if let (Value::List(list), expiry) = occupied.get_mut() {
+                    if let Some(expiry) = expiry {
+                        if *expiry < now {
+                            occupied.remove();
+                            return Ok(None);
+                        }
+                    }
+
                     let mut popped = Vec::new();
 
                     for _ in 0..count {
@@ -460,9 +442,9 @@ impl Soul {
         }
     }
 
-    pub fn llen(&self, key: Vec<u8>) -> Result<usize, Sacrilege> {
-        match self.0.get(&key) {
-            Some((Value::List(list), _)) => Ok(list.len()),
+    pub fn llen(&self, key: Vec<u8>, now: SystemTime) -> Result<usize, Sacrilege> {
+        match self.get_valid_value(&key, now) {
+            Some(Value::List(list)) => Ok(list.len()),
             Some(_) => Err(Sacrilege::IncorrectUsage(Command::LLEN)),
             None => Ok(0),
         }
@@ -473,9 +455,10 @@ impl Soul {
         key: Vec<u8>,
         mut starting_index: i32,
         mut ending_index: i32,
+        now: SystemTime,
     ) -> Result<Option<Vec<Option<Vec<u8>>>>, Sacrilege> {
-        match self.0.get(&key) {
-            Some((Value::List(list), _)) => {
+        match self.get_valid_value(&key, now) {
+            Some(Value::List(list)) => {
                 let list_len = list.len() as i32;
 
                 if starting_index < 0 {
@@ -512,9 +495,14 @@ impl Soul {
         }
     }
 
-    pub fn lindex(&self, key: Vec<u8>, mut index: i32) -> Result<Option<Vec<u8>>, Sacrilege> {
-        match self.0.get(&key) {
-            Some((Value::List(list), _)) => {
+    pub fn lindex(
+        &self,
+        key: Vec<u8>,
+        mut index: i32,
+        now: SystemTime,
+    ) -> Result<Option<Vec<u8>>, Sacrilege> {
+        match self.get_valid_value(&key, now) {
+            Some(Value::List(list)) => {
                 let list_len = list.len() as i32;
 
                 if index < 0 {
@@ -537,9 +525,10 @@ impl Soul {
         key: Vec<u8>,
         mut index: i32,
         element: Vec<u8>,
+        now: SystemTime,
     ) -> Result<(), Sacrilege> {
-        match self.0.get_mut(&key) {
-            Some((Value::List(list), _)) => {
+        match self.get_mut_valid_value(&key, now) {
+            Some(Value::List(list)) => {
                 let list_len = list.len() as i32;
 
                 if index < 0 {
@@ -554,9 +543,7 @@ impl Soul {
 
                 Ok(())
             }
-            Some(_) => {
-                Err(Sacrilege::IncorrectUsage(Command::LSET))
-            }
+            Some(_) => Err(Sacrilege::IncorrectUsage(Command::LSET)),
             None => Err(Sacrilege::IncorrectUsage(Command::LSET)),
         }
     }
@@ -566,9 +553,10 @@ impl Soul {
         key: Vec<u8>,
         mut count: i32,
         element: Vec<u8>,
+        now: SystemTime,
     ) -> Result<usize, Sacrilege> {
-        match self.0.get_mut(&key) {
-            Some((Value::List(list), _)) => {
+        match self.get_mut_valid_value(&key, now) {
+            Some(Value::List(list)) => {
                 let initial_len = list.len();
 
                 if count < 0 {
@@ -607,6 +595,67 @@ impl Soul {
             None => Ok(0),
         }
     }
+
+    pub fn expire(&mut self, key: Vec<u8>, expiry: SystemTime, now: SystemTime) -> u32 {
+        match self.0.entry(key) {
+            Entry::Occupied(mut occupied) => {
+                let (_, existing_expiry) = occupied.get_mut();
+
+                if let Some(expiry) = existing_expiry {
+                    if *expiry < now {
+                        occupied.remove();
+                        return 0;
+                    }
+                }
+
+                *existing_expiry = Some(expiry);
+                1
+            }
+            Entry::Vacant(_) => 0,
+        }
+    }
+
+    fn get_valid_value(&self, key: &Vec<u8>, now: SystemTime) -> Option<&Value> {
+        match self.0.get(key) {
+            Some((value, Some(expiry))) => {
+                if *expiry < now {
+                    return None;
+                } else {
+                    Some(value)
+                }
+            }
+            Some((value, _)) => Some(value),
+            None => None,
+        }
+    }
+
+    fn get_mut_valid_value(&mut self, key: &Vec<u8>, now: SystemTime) -> Option<&mut Value> {
+        match self.0.get_mut(key) {
+            Some((value, Some(expiry))) => {
+                if *expiry < now {
+                    return None;
+                } else {
+                    Some(value)
+                }
+            }
+            Some((value, _)) => Some(value),
+            None => None,
+        }
+    }
+
+    pub fn remove_valid_value(&mut self, key: &Vec<u8>, now: SystemTime) -> Option<Value> {
+        match self.0.remove(key) {
+            Some((value, Some(expiry))) => {
+                if expiry < now {
+                    None
+                } else {
+                    Some(value)
+                }
+            }
+            Some((value, None)) => Some(value),
+            None => None,
+        }
+    }
 }
 
 pub enum Wish {
@@ -614,6 +663,7 @@ pub enum Wish {
         key: Vec<u8>,
         token: Token,
         tx: Sender<Decree>,
+        time: SystemTime,
     },
     Set {
         key: Vec<u8>,
@@ -625,106 +675,125 @@ pub enum Wish {
         keys: Vec<Vec<u8>>,
         token: Token,
         tx: Sender<Decree>,
+        time: SystemTime,
     },
     Append {
         key: Vec<u8>,
         token: Token,
-        value: Value,
+        value: Vec<u8>,
         tx: Sender<Decree>,
+        time: SystemTime,
     },
     Incr {
         key: Vec<u8>,
         token: Token,
         tx: Sender<Decree>,
+        time: SystemTime,
     },
     Decr {
         key: Vec<u8>,
         token: Token,
         tx: Sender<Decree>,
+        time: SystemTime,
     },
     Strlen {
         key: Vec<u8>,
         token: Token,
         tx: Sender<Decree>,
+        time: SystemTime,
     },
     Exists {
         keys: Vec<Vec<u8>>,
         token: Token,
         tx: Sender<Decree>,
+        time: SystemTime,
     },
     Hset {
         key: Vec<u8>,
         token: Token,
         field_value_pairs: Vec<(Vec<u8>, Vec<u8>)>,
         tx: Sender<Decree>,
+        time: SystemTime,
     },
     Hget {
         key: Vec<u8>,
         token: Token,
         field: Vec<u8>,
         tx: Sender<Decree>,
+        time: SystemTime,
     },
     Hmget {
         key: Vec<u8>,
         token: Token,
         fields: Vec<Vec<u8>>,
         tx: Sender<Decree>,
+        time: SystemTime,
     },
     Hdel {
         key: Vec<u8>,
         token: Token,
         fields: Vec<Vec<u8>>,
         tx: Sender<Decree>,
+        time: SystemTime,
     },
     Hexists {
         key: Vec<u8>,
         token: Token,
         field: Vec<u8>,
         tx: Sender<Decree>,
+        time: SystemTime,
     },
     Hlen {
         key: Vec<u8>,
         token: Token,
         tx: Sender<Decree>,
+        time: SystemTime,
     },
     Lpush {
         key: Vec<u8>,
         token: Token,
         elements: Vec<Vec<u8>>,
         tx: Sender<Decree>,
+        time: SystemTime,
     },
     Lpop {
         key: Vec<u8>,
         token: Token,
         tx: Sender<Decree>,
+        time: SystemTime,
     },
     LpopM {
         key: Vec<u8>,
         count: usize,
         token: Token,
         tx: Sender<Decree>,
+        time: SystemTime,
     },
     Rpush {
         key: Vec<u8>,
         token: Token,
         elements: Vec<Vec<u8>>,
         tx: Sender<Decree>,
+        time: SystemTime,
     },
     Rpop {
         key: Vec<u8>,
         token: Token,
         tx: Sender<Decree>,
+        time: SystemTime,
     },
     RpopM {
         key: Vec<u8>,
         count: usize,
         token: Token,
         tx: Sender<Decree>,
+        time: SystemTime,
     },
     Llen {
         key: Vec<u8>,
         token: Token,
         tx: Sender<Decree>,
+        time: SystemTime,
     },
     Lrange {
         key: Vec<u8>,
@@ -732,12 +801,14 @@ pub enum Wish {
         ending_index: i32,
         token: Token,
         tx: Sender<Decree>,
+        time: SystemTime,
     },
     Lindex {
         key: Vec<u8>,
         index: i32,
         token: Token,
         tx: Sender<Decree>,
+        time: SystemTime,
     },
     Lset {
         key: Vec<u8>,
@@ -745,6 +816,7 @@ pub enum Wish {
         element: Vec<u8>,
         token: Token,
         tx: Sender<Decree>,
+        time: SystemTime,
     },
     Lrem {
         key: Vec<u8>,
@@ -752,6 +824,14 @@ pub enum Wish {
         element: Vec<u8>,
         token: Token,
         tx: Sender<Decree>,
+        time: SystemTime,
+    },
+    Expire {
+        key: Vec<u8>,
+        expiry: SystemTime,
+        token: Token,
+        tx: Sender<Decree>,
+        time: SystemTime,
     },
 }
 
@@ -771,7 +851,12 @@ impl<'a> Temple<'a> {
             loop {
                 match rx.recv() {
                     Ok(wish) => match wish {
-                        Wish::Get { key, token, tx } => match soul.get(key) {
+                        Wish::Get {
+                            key,
+                            token,
+                            tx,
+                            time,
+                        } => match soul.get(key, time) {
                             Ok(bulk_string) => {
                                 if tx
                                     .send(Decree::Deliver(Gift {
@@ -813,11 +898,16 @@ impl<'a> Temple<'a> {
                                 eprintln!("angel panicked");
                             }
                         }
-                        Wish::Del { keys, token, tx } => {
+                        Wish::Del {
+                            keys,
+                            token,
+                            tx,
+                            time,
+                        } => {
                             if tx
                                 .send(Decree::Deliver(Gift {
                                     token,
-                                    response: Response::Amount(soul.del(keys)),
+                                    response: Response::Amount(soul.del(keys, time)),
                                 }))
                                 .is_err()
                             {
@@ -827,20 +917,40 @@ impl<'a> Temple<'a> {
                         Wish::Append {
                             key,
                             token,
-                            value: val,
+                            value,
                             tx,
-                        } => {
-                            if tx
-                                .send(Decree::Deliver(Gift {
-                                    token,
-                                    response: Response::Length(soul.append(key, val)),
-                                }))
-                                .is_err()
-                            {
-                                eprintln!("angel panicked");
+                            time,
+                        } => match soul.append(key, value, time) {
+                            Ok(length) => {
+                                if tx
+                                    .send(Decree::Deliver(Gift {
+                                        token,
+                                        response: Response::Length(length),
+                                    }))
+                                    .is_err()
+                                {
+                                    eprintln!("angel panicked");
+                                }
                             }
-                        }
-                        Wish::Incr { key, token, tx } => match soul.incr(key) {
+                            Err(sacrilege) => {
+                                if tx
+                                    .send(Decree::Deliver(Gift {
+                                        token,
+                                        response: Response::Error(sacrilege),
+                                    }))
+                                    .is_err()
+                                {
+                                    eprintln!("angel panicked");
+                                }
+                            }
+                        },
+
+                        Wish::Incr {
+                            key,
+                            token,
+                            tx,
+                            time,
+                        } => match soul.incr(key, time) {
                             Ok(number) => {
                                 if tx
                                     .send(Decree::Deliver(Gift {
@@ -864,7 +974,12 @@ impl<'a> Temple<'a> {
                                 }
                             }
                         },
-                        Wish::Decr { key, token, tx } => match soul.decr(key) {
+                        Wish::Decr {
+                            key,
+                            token,
+                            tx,
+                            time,
+                        } => match soul.decr(key, time) {
                             Ok(number) => {
                                 if tx
                                     .send(Decree::Deliver(Gift {
@@ -888,7 +1003,12 @@ impl<'a> Temple<'a> {
                                 }
                             }
                         },
-                        Wish::Strlen { key, token, tx } => match soul.strlen(key) {
+                        Wish::Strlen {
+                            key,
+                            token,
+                            tx,
+                            time,
+                        } => match soul.strlen(key, time) {
                             Ok(length) => {
                                 if tx
                                     .send(Decree::Deliver(Gift {
@@ -912,11 +1032,16 @@ impl<'a> Temple<'a> {
                                 }
                             }
                         },
-                        Wish::Exists { keys, token, tx } => {
+                        Wish::Exists {
+                            keys,
+                            token,
+                            tx,
+                            time,
+                        } => {
                             if tx
                                 .send(Decree::Deliver(Gift {
                                     token,
-                                    response: Response::Amount(soul.exists(keys)),
+                                    response: Response::Amount(soul.exists(keys, time)),
                                 }))
                                 .is_err()
                             {
@@ -928,7 +1053,8 @@ impl<'a> Temple<'a> {
                             token,
                             field_value_pairs,
                             tx,
-                        } => match soul.hset(key, field_value_pairs) {
+                            time,
+                        } => match soul.hset(key, field_value_pairs, time) {
                             Ok(new_values_added) => {
                                 if tx
                                     .send(Decree::Deliver(Gift {
@@ -957,7 +1083,8 @@ impl<'a> Temple<'a> {
                             token,
                             field,
                             tx,
-                        } => match soul.hget(key, field) {
+                            time,
+                        } => match soul.hget(key, field, time) {
                             Ok(bulk_string) => {
                                 if tx
                                     .send(Decree::Deliver(Gift {
@@ -986,7 +1113,8 @@ impl<'a> Temple<'a> {
                             token,
                             fields,
                             tx,
-                        } => match soul.hmget(key, fields) {
+                            time,
+                        } => match soul.hmget(key, fields, time) {
                             Ok(bulk_string_array) => {
                                 if tx
                                     .send(Decree::Deliver(Gift {
@@ -1015,7 +1143,8 @@ impl<'a> Temple<'a> {
                             token,
                             fields,
                             tx,
-                        } => match soul.hdel(key, fields) {
+                            time,
+                        } => match soul.hdel(key, fields, time) {
                             Ok(amount) => {
                                 if tx
                                     .send(Decree::Deliver(Gift {
@@ -1044,7 +1173,8 @@ impl<'a> Temple<'a> {
                             token,
                             field,
                             tx,
-                        } => match soul.hexists(key, field) {
+                            time,
+                        } => match soul.hexists(key, field, time) {
                             Ok(amount) => {
                                 if tx
                                     .send(Decree::Deliver(Gift {
@@ -1068,7 +1198,12 @@ impl<'a> Temple<'a> {
                                 }
                             }
                         },
-                        Wish::Hlen { key, token, tx } => match soul.hlen(key) {
+                        Wish::Hlen {
+                            key,
+                            token,
+                            tx,
+                            time,
+                        } => match soul.hlen(key, time) {
                             Ok(length) => {
                                 if tx
                                     .send(Decree::Deliver(Gift {
@@ -1097,7 +1232,8 @@ impl<'a> Temple<'a> {
                             token,
                             elements,
                             tx,
-                        } => match soul.lpush(key, elements) {
+                            time,
+                        } => match soul.lpush(key, elements, time) {
                             Ok(length) => {
                                 if tx
                                     .send(Decree::Deliver(Gift {
@@ -1121,7 +1257,12 @@ impl<'a> Temple<'a> {
                                 }
                             }
                         },
-                        Wish::Lpop { key, token, tx } => match soul.lpop(key) {
+                        Wish::Lpop {
+                            key,
+                            token,
+                            tx,
+                            time,
+                        } => match soul.lpop(key, time) {
                             Ok(element) => {
                                 if tx
                                     .send(Decree::Deliver(Gift {
@@ -1150,7 +1291,8 @@ impl<'a> Temple<'a> {
                             count,
                             token,
                             tx,
-                        } => match soul.lpop_m(key, count) {
+                            time,
+                        } => match soul.lpop_m(key, count, time) {
                             Ok(elements) => {
                                 if tx
                                     .send(Decree::Deliver(Gift {
@@ -1179,7 +1321,8 @@ impl<'a> Temple<'a> {
                             token,
                             elements,
                             tx,
-                        } => match soul.rpush(key, elements) {
+                            time,
+                        } => match soul.rpush(key, elements, time) {
                             Ok(length) => {
                                 if tx
                                     .send(Decree::Deliver(Gift {
@@ -1203,7 +1346,12 @@ impl<'a> Temple<'a> {
                                 }
                             }
                         },
-                        Wish::Rpop { key, token, tx } => match soul.rpop(key) {
+                        Wish::Rpop {
+                            key,
+                            token,
+                            tx,
+                            time,
+                        } => match soul.rpop(key, time) {
                             Ok(element) => {
                                 if tx
                                     .send(Decree::Deliver(Gift {
@@ -1232,7 +1380,8 @@ impl<'a> Temple<'a> {
                             count,
                             token,
                             tx,
-                        } => match soul.rpop_m(key, count) {
+                            time,
+                        } => match soul.rpop_m(key, count, time) {
                             Ok(elements) => {
                                 if tx
                                     .send(Decree::Deliver(Gift {
@@ -1256,7 +1405,12 @@ impl<'a> Temple<'a> {
                                 }
                             }
                         },
-                        Wish::Llen { key, token, tx } => match soul.llen(key) {
+                        Wish::Llen {
+                            key,
+                            token,
+                            tx,
+                            time,
+                        } => match soul.llen(key, time) {
                             Ok(length) => {
                                 if tx
                                     .send(Decree::Deliver(Gift {
@@ -1286,7 +1440,8 @@ impl<'a> Temple<'a> {
                             ending_index,
                             token,
                             tx,
-                        } => match soul.lrange(key, starting_index, ending_index) {
+                            time,
+                        } => match soul.lrange(key, starting_index, ending_index, time) {
                             Ok(bulk_string_array) => {
                                 if tx
                                     .send(Decree::Deliver(Gift {
@@ -1315,7 +1470,8 @@ impl<'a> Temple<'a> {
                             token,
                             index,
                             tx,
-                        } => match soul.lindex(key, index) {
+                            time,
+                        } => match soul.lindex(key, index, time) {
                             Ok(element) => {
                                 if tx
                                     .send(Decree::Deliver(Gift {
@@ -1345,7 +1501,8 @@ impl<'a> Temple<'a> {
                             element,
                             index,
                             tx,
-                        } => match soul.lset(key, index, element) {
+                            time,
+                        } => match soul.lset(key, index, element, time) {
                             Ok(_) => {
                                 if tx
                                     .send(Decree::Deliver(Gift {
@@ -1375,7 +1532,8 @@ impl<'a> Temple<'a> {
                             element,
                             count,
                             tx,
-                        } => match soul.lrem(key, count, element) {
+                            time,
+                        } => match soul.lrem(key, count, element, time) {
                             Ok(amount) => {
                                 if tx
                                     .send(Decree::Deliver(Gift {
@@ -1399,6 +1557,23 @@ impl<'a> Temple<'a> {
                                 }
                             }
                         },
+                        Wish::Expire {
+                            key,
+                            token,
+                            expiry,
+                            tx,
+                            time,
+                        } => {
+                            if tx
+                                .send(Decree::Deliver(Gift {
+                                    token,
+                                    response: Response::Amount(soul.expire(key, expiry, time)),
+                                }))
+                                .is_err()
+                            {
+                                eprintln!("angel panicked");
+                            }
+                        }
                     },
                     Err(e) => {
                         eprintln!("GodThread: {}", e);
@@ -1411,8 +1586,17 @@ impl<'a> Temple<'a> {
         Temple { name, tx }
     }
 
-    pub fn get(&self, key: Vec<u8>, tx: Sender<Decree>, token: Token) {
-        if self.tx.send(Wish::Get { key, token, tx }).is_err() {
+    pub fn get(&self, key: Vec<u8>, tx: Sender<Decree>, token: Token, time: SystemTime) {
+        if self
+            .tx
+            .send(Wish::Get {
+                key,
+                token,
+                tx,
+                time,
+            })
+            .is_err()
+        {
             eprintln!("angel panicked");
         }
     }
@@ -1438,26 +1622,14 @@ impl<'a> Temple<'a> {
         }
     }
 
-    pub fn del(&self, keys: Vec<Vec<u8>>, tx: Sender<Decree>, token: Token) {
-        if self.tx.send(Wish::Del { keys, token, tx }).is_err() {
-            eprintln!("angel panicked");
-        }
-    }
-
-    pub fn exists(&self, keys: Vec<Vec<u8>>, tx: Sender<Decree>, token: Token) {
-        if self.tx.send(Wish::Exists { keys, token, tx }).is_err() {
-            eprintln!("angel panicked");
-        }
-    }
-
-    pub fn append(&self, key: Vec<u8>, value: Value, tx: Sender<Decree>, token: Token) {
+    pub fn del(&self, keys: Vec<Vec<u8>>, tx: Sender<Decree>, token: Token, time: SystemTime) {
         if self
             .tx
-            .send(Wish::Append {
-                key,
+            .send(Wish::Del {
+                keys,
                 token,
-                value,
                 tx,
+                time,
             })
             .is_err()
         {
@@ -1465,20 +1637,85 @@ impl<'a> Temple<'a> {
         }
     }
 
-    pub fn incr(&self, key: Vec<u8>, tx: Sender<Decree>, token: Token) {
-        if self.tx.send(Wish::Incr { key, token, tx }).is_err() {
+    pub fn exists(&self, keys: Vec<Vec<u8>>, tx: Sender<Decree>, token: Token, time: SystemTime) {
+        if self
+            .tx
+            .send(Wish::Exists {
+                keys,
+                token,
+                tx,
+                time,
+            })
+            .is_err()
+        {
             eprintln!("angel panicked");
         }
     }
 
-    pub fn decr(&self, key: Vec<u8>, tx: Sender<Decree>, token: Token) {
-        if self.tx.send(Wish::Decr { key, token, tx }).is_err() {
+    pub fn append(
+        &self,
+        key: Vec<u8>,
+        value: Vec<u8>,
+        tx: Sender<Decree>,
+        token: Token,
+        time: SystemTime,
+    ) {
+        if self
+            .tx
+            .send(Wish::Append {
+                key,
+                token,
+                value,
+                tx,
+                time,
+            })
+            .is_err()
+        {
             eprintln!("angel panicked");
         }
     }
 
-    pub fn strlen(&self, key: Vec<u8>, tx: Sender<Decree>, token: Token) {
-        if self.tx.send(Wish::Strlen { key, token, tx }).is_err() {
+    pub fn incr(&self, key: Vec<u8>, tx: Sender<Decree>, token: Token, time: SystemTime) {
+        if self
+            .tx
+            .send(Wish::Incr {
+                key,
+                token,
+                tx,
+                time,
+            })
+            .is_err()
+        {
+            eprintln!("angel panicked");
+        }
+    }
+
+    pub fn decr(&self, key: Vec<u8>, tx: Sender<Decree>, token: Token, time: SystemTime) {
+        if self
+            .tx
+            .send(Wish::Decr {
+                key,
+                token,
+                tx,
+                time,
+            })
+            .is_err()
+        {
+            eprintln!("angel panicked");
+        }
+    }
+
+    pub fn strlen(&self, key: Vec<u8>, tx: Sender<Decree>, token: Token, time: SystemTime) {
+        if self
+            .tx
+            .send(Wish::Strlen {
+                key,
+                token,
+                tx,
+                time,
+            })
+            .is_err()
+        {
             eprintln!("angel panicked");
         }
     }
@@ -1489,6 +1726,7 @@ impl<'a> Temple<'a> {
         field_value_pairs: Vec<(Vec<u8>, Vec<u8>)>,
         tx: Sender<Decree>,
         token: Token,
+        time: SystemTime,
     ) {
         if self
             .tx
@@ -1497,6 +1735,7 @@ impl<'a> Temple<'a> {
                 token,
                 field_value_pairs,
                 tx,
+                time,
             })
             .is_err()
         {
@@ -1504,7 +1743,14 @@ impl<'a> Temple<'a> {
         }
     }
 
-    pub fn hget(&self, tx: Sender<Decree>, key: Vec<u8>, field: Vec<u8>, token: Token) {
+    pub fn hget(
+        &self,
+        tx: Sender<Decree>,
+        key: Vec<u8>,
+        field: Vec<u8>,
+        token: Token,
+        time: SystemTime,
+    ) {
         if self
             .tx
             .send(Wish::Hget {
@@ -1512,6 +1758,7 @@ impl<'a> Temple<'a> {
                 token,
                 field,
                 tx,
+                time,
             })
             .is_err()
         {
@@ -1519,7 +1766,14 @@ impl<'a> Temple<'a> {
         }
     }
 
-    pub fn hmget(&self, tx: Sender<Decree>, key: Vec<u8>, fields: Vec<Vec<u8>>, token: Token) {
+    pub fn hmget(
+        &self,
+        tx: Sender<Decree>,
+        key: Vec<u8>,
+        fields: Vec<Vec<u8>>,
+        token: Token,
+        time: SystemTime,
+    ) {
         if self
             .tx
             .send(Wish::Hmget {
@@ -1527,6 +1781,7 @@ impl<'a> Temple<'a> {
                 token,
                 fields,
                 tx,
+                time,
             })
             .is_err()
         {
@@ -1534,7 +1789,14 @@ impl<'a> Temple<'a> {
         }
     }
 
-    pub fn hdel(&self, tx: Sender<Decree>, key: Vec<u8>, fields: Vec<Vec<u8>>, token: Token) {
+    pub fn hdel(
+        &self,
+        tx: Sender<Decree>,
+        key: Vec<u8>,
+        fields: Vec<Vec<u8>>,
+        token: Token,
+        time: SystemTime,
+    ) {
         if self
             .tx
             .send(Wish::Hdel {
@@ -1542,6 +1804,7 @@ impl<'a> Temple<'a> {
                 token,
                 fields,
                 tx,
+                time,
             })
             .is_err()
         {
@@ -1549,7 +1812,14 @@ impl<'a> Temple<'a> {
         }
     }
 
-    pub fn hexists(&self, tx: Sender<Decree>, key: Vec<u8>, field: Vec<u8>, token: Token) {
+    pub fn hexists(
+        &self,
+        tx: Sender<Decree>,
+        key: Vec<u8>,
+        field: Vec<u8>,
+        token: Token,
+        time: SystemTime,
+    ) {
         if self
             .tx
             .send(Wish::Hexists {
@@ -1557,6 +1827,7 @@ impl<'a> Temple<'a> {
                 token,
                 field,
                 tx,
+                time,
             })
             .is_err()
         {
@@ -1564,13 +1835,29 @@ impl<'a> Temple<'a> {
         }
     }
 
-    pub fn hlen(&self, tx: Sender<Decree>, key: Vec<u8>, token: Token) {
-        if self.tx.send(Wish::Hlen { key, token, tx }).is_err() {
+    pub fn hlen(&self, tx: Sender<Decree>, key: Vec<u8>, token: Token, time: SystemTime) {
+        if self
+            .tx
+            .send(Wish::Hlen {
+                key,
+                token,
+                tx,
+                time,
+            })
+            .is_err()
+        {
             eprintln!("angel panicked");
         }
     }
 
-    pub fn lpush(&self, tx: Sender<Decree>, key: Vec<u8>, elements: Vec<Vec<u8>>, token: Token) {
+    pub fn lpush(
+        &self,
+        tx: Sender<Decree>,
+        key: Vec<u8>,
+        elements: Vec<Vec<u8>>,
+        token: Token,
+        time: SystemTime,
+    ) {
         if self
             .tx
             .send(Wish::Lpush {
@@ -1578,6 +1865,7 @@ impl<'a> Temple<'a> {
                 token,
                 elements,
                 tx,
+                time,
             })
             .is_err()
         {
@@ -1585,13 +1873,29 @@ impl<'a> Temple<'a> {
         }
     }
 
-    pub fn lpop(&self, tx: Sender<Decree>, key: Vec<u8>, token: Token) {
-        if self.tx.send(Wish::Lpop { key, token, tx }).is_err() {
+    pub fn lpop(&self, tx: Sender<Decree>, key: Vec<u8>, token: Token, time: SystemTime) {
+        if self
+            .tx
+            .send(Wish::Lpop {
+                key,
+                token,
+                tx,
+                time,
+            })
+            .is_err()
+        {
             eprintln!("angel panicked");
         }
     }
 
-    pub fn lpop_m(&self, tx: Sender<Decree>, key: Vec<u8>, count: usize, token: Token) {
+    pub fn lpop_m(
+        &self,
+        tx: Sender<Decree>,
+        key: Vec<u8>,
+        count: usize,
+        token: Token,
+        time: SystemTime,
+    ) {
         if self
             .tx
             .send(Wish::LpopM {
@@ -1599,6 +1903,7 @@ impl<'a> Temple<'a> {
                 count,
                 token,
                 tx,
+                time,
             })
             .is_err()
         {
@@ -1606,7 +1911,14 @@ impl<'a> Temple<'a> {
         }
     }
 
-    pub fn rpush(&self, tx: Sender<Decree>, key: Vec<u8>, elements: Vec<Vec<u8>>, token: Token) {
+    pub fn rpush(
+        &self,
+        tx: Sender<Decree>,
+        key: Vec<u8>,
+        elements: Vec<Vec<u8>>,
+        token: Token,
+        time: SystemTime,
+    ) {
         if self
             .tx
             .send(Wish::Rpush {
@@ -1614,6 +1926,7 @@ impl<'a> Temple<'a> {
                 token,
                 elements,
                 tx,
+                time,
             })
             .is_err()
         {
@@ -1621,13 +1934,29 @@ impl<'a> Temple<'a> {
         }
     }
 
-    pub fn rpop(&self, tx: Sender<Decree>, key: Vec<u8>, token: Token) {
-        if self.tx.send(Wish::Rpop { key, token, tx }).is_err() {
+    pub fn rpop(&self, tx: Sender<Decree>, key: Vec<u8>, token: Token, time: SystemTime) {
+        if self
+            .tx
+            .send(Wish::Rpop {
+                key,
+                token,
+                tx,
+                time,
+            })
+            .is_err()
+        {
             eprintln!("angel panicked");
         }
     }
 
-    pub fn rpop_m(&self, tx: Sender<Decree>, key: Vec<u8>, count: usize, token: Token) {
+    pub fn rpop_m(
+        &self,
+        tx: Sender<Decree>,
+        key: Vec<u8>,
+        count: usize,
+        token: Token,
+        time: SystemTime,
+    ) {
         if self
             .tx
             .send(Wish::RpopM {
@@ -1635,6 +1964,7 @@ impl<'a> Temple<'a> {
                 count,
                 token,
                 tx,
+                time,
             })
             .is_err()
         {
@@ -1642,8 +1972,17 @@ impl<'a> Temple<'a> {
         }
     }
 
-    pub fn llen(&self, tx: Sender<Decree>, key: Vec<u8>, token: Token) {
-        if self.tx.send(Wish::Llen { key, token, tx }).is_err() {
+    pub fn llen(&self, tx: Sender<Decree>, key: Vec<u8>, token: Token, time: SystemTime) {
+        if self
+            .tx
+            .send(Wish::Llen {
+                key,
+                token,
+                tx,
+                time,
+            })
+            .is_err()
+        {
             eprintln!("angel panicked");
         }
     }
@@ -1655,6 +1994,7 @@ impl<'a> Temple<'a> {
         starting_index: i32,
         ending_index: i32,
         token: Token,
+        time: SystemTime,
     ) {
         if self
             .tx
@@ -1664,6 +2004,7 @@ impl<'a> Temple<'a> {
                 ending_index,
                 token,
                 tx,
+                time,
             })
             .is_err()
         {
@@ -1671,7 +2012,14 @@ impl<'a> Temple<'a> {
         }
     }
 
-    pub fn lindex(&self, tx: Sender<Decree>, key: Vec<u8>, index: i32, token: Token) {
+    pub fn lindex(
+        &self,
+        tx: Sender<Decree>,
+        key: Vec<u8>,
+        index: i32,
+        token: Token,
+        time: SystemTime,
+    ) {
         if self
             .tx
             .send(Wish::Lindex {
@@ -1679,6 +2027,7 @@ impl<'a> Temple<'a> {
                 token,
                 index,
                 tx,
+                time,
             })
             .is_err()
         {
@@ -1693,6 +2042,7 @@ impl<'a> Temple<'a> {
         index: i32,
         element: Vec<u8>,
         token: Token,
+        time: SystemTime,
     ) {
         if self
             .tx
@@ -1702,6 +2052,7 @@ impl<'a> Temple<'a> {
                 element,
                 index,
                 tx,
+                time,
             })
             .is_err()
         {
@@ -1716,6 +2067,7 @@ impl<'a> Temple<'a> {
         count: i32,
         element: Vec<u8>,
         token: Token,
+        time: SystemTime,
     ) {
         if self
             .tx
@@ -1725,6 +2077,30 @@ impl<'a> Temple<'a> {
                 element,
                 count,
                 tx,
+                time,
+            })
+            .is_err()
+        {
+            eprintln!("angel panicked");
+        }
+    }
+
+    pub fn expire(
+        &self,
+        tx: Sender<Decree>,
+        key: Vec<u8>,
+        expiry: SystemTime,
+        token: Token,
+        time: SystemTime,
+    ) {
+        if self
+            .tx
+            .send(Wish::Expire {
+                key,
+                expiry,
+                token,
+                tx,
+                time,
             })
             .is_err()
         {

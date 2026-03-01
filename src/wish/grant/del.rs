@@ -7,7 +7,7 @@ use crate::{
         grant::{Decree, Gift},
     },
 };
-use std::sync::mpsc::Sender;
+use std::{sync::mpsc::Sender, time::SystemTime};
 
 pub fn del(
     terms: Vec<Vec<u8>>,
@@ -32,7 +32,7 @@ pub fn del(
     let mut terms_iter = terms.into_iter();
     terms_iter.next();
 
-    temple.del(terms_iter.collect(), tx, token);
+    temple.del(terms_iter.collect(), tx, token, SystemTime::now());
 
     Ok(())
 }

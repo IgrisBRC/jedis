@@ -1,5 +1,5 @@
- SET: rps=0.0 (overall: 0.0) avg_msec=-nan (overall: -nan)                                                          SET: rps=110424.0 (overall: 109984.1) avg_msec=0.246 (overall: 0.246)                                                                      SET: rps=107664.0 (overall: 108826.4) avg_msec=0.251 (overall: 0.248)                                                                      SET: rps=115549.8 (overall: 111070.5) avg_msec=0.234 (overall: 0.243)                                                                      ====== SET ======
-  100000 requests completed in 0.91 seconds
+ SET: rps=0.0 (overall: 0.0) avg_msec=-nan (overall: -nan)                                                          SET: rps=119332.0 (overall: 118856.6) avg_msec=0.229 (overall: 0.229)                                                                      SET: rps=112736.0 (overall: 115802.4) avg_msec=0.240 (overall: 0.234)                                                                      SET: rps=115035.9 (overall: 115546.5) avg_msec=0.235 (overall: 0.235)                                                                      ====== SET ======
+  100000 requests completed in 0.87 seconds
   50 parallel clients
   3 bytes payload
   keep alive: 1
@@ -7,331 +7,41 @@
 
 Latency by percentile distribution:
 0.000% <= 0.079 milliseconds (cumulative count 1)
-50.000% <= 0.247 milliseconds (cumulative count 53457)
-75.000% <= 0.271 milliseconds (cumulative count 83893)
-87.500% <= 0.279 milliseconds (cumulative count 90915)
-93.750% <= 0.287 milliseconds (cumulative count 95348)
-96.875% <= 0.295 milliseconds (cumulative count 97627)
-98.438% <= 0.303 milliseconds (cumulative count 98633)
-99.219% <= 0.319 milliseconds (cumulative count 99238)
-99.609% <= 0.383 milliseconds (cumulative count 99634)
-99.805% <= 0.423 milliseconds (cumulative count 99807)
-99.902% <= 0.463 milliseconds (cumulative count 99910)
-99.951% <= 0.519 milliseconds (cumulative count 99952)
-99.976% <= 0.719 milliseconds (cumulative count 99976)
-99.988% <= 0.823 milliseconds (cumulative count 99988)
-99.994% <= 0.887 milliseconds (cumulative count 99994)
-99.997% <= 0.919 milliseconds (cumulative count 99997)
-99.998% <= 0.943 milliseconds (cumulative count 99999)
-99.999% <= 0.951 milliseconds (cumulative count 100000)
-100.000% <= 0.951 milliseconds (cumulative count 100000)
-
-Cumulative distribution of latencies:
-0.007% <= 0.103 milliseconds (cumulative count 7)
-7.947% <= 0.207 milliseconds (cumulative count 7947)
-98.633% <= 0.303 milliseconds (cumulative count 98633)
-99.746% <= 0.407 milliseconds (cumulative count 99746)
-99.951% <= 0.503 milliseconds (cumulative count 99951)
-99.963% <= 0.607 milliseconds (cumulative count 99963)
-99.973% <= 0.703 milliseconds (cumulative count 99973)
-99.986% <= 0.807 milliseconds (cumulative count 99986)
-99.996% <= 0.903 milliseconds (cumulative count 99996)
-100.000% <= 1.007 milliseconds (cumulative count 100000)
-
-Summary:
-  throughput summary: 110253.59 requests per second
-  latency summary (msec):
-          avg       min       p50       p95       p99       max
-        0.245     0.072     0.247     0.287     0.311     0.951
- GET: rps=44532.0 (overall: 118436.2) avg_msec=0.229 (overall: 0.229)                                                                     GET: rps=109412.0 (overall: 111877.9) avg_msec=0.247 (overall: 0.242)                                                                      GET: rps=110047.8 (overall: 111105.9) avg_msec=0.245 (overall: 0.243)                                                                      GET: rps=109148.0 (overall: 110526.6) avg_msec=0.248 (overall: 0.245)                                                                      ====== GET ======
-  100000 requests completed in 0.90 seconds
-  50 parallel clients
-  3 bytes payload
-  keep alive: 1
-  multi-thread: no
-
-Latency by percentile distribution:
-0.000% <= 0.087 milliseconds (cumulative count 1)
-50.000% <= 0.247 milliseconds (cumulative count 55716)
-75.000% <= 0.271 milliseconds (cumulative count 84306)
-87.500% <= 0.279 milliseconds (cumulative count 91819)
-93.750% <= 0.287 milliseconds (cumulative count 96211)
-96.875% <= 0.295 milliseconds (cumulative count 98346)
-98.438% <= 0.303 milliseconds (cumulative count 99273)
-99.609% <= 0.319 milliseconds (cumulative count 99736)
-99.805% <= 0.335 milliseconds (cumulative count 99821)
-99.902% <= 0.415 milliseconds (cumulative count 99907)
-99.951% <= 0.447 milliseconds (cumulative count 99961)
-99.976% <= 0.463 milliseconds (cumulative count 99980)
-99.988% <= 0.471 milliseconds (cumulative count 99988)
-99.994% <= 0.479 milliseconds (cumulative count 99995)
-99.997% <= 0.487 milliseconds (cumulative count 99998)
-99.998% <= 0.495 milliseconds (cumulative count 100000)
-100.000% <= 0.495 milliseconds (cumulative count 100000)
-
-Cumulative distribution of latencies:
-0.006% <= 0.103 milliseconds (cumulative count 6)
-8.112% <= 0.207 milliseconds (cumulative count 8112)
-99.273% <= 0.303 milliseconds (cumulative count 99273)
-99.890% <= 0.407 milliseconds (cumulative count 99890)
-100.000% <= 0.503 milliseconds (cumulative count 100000)
-
-Summary:
-  throughput summary: 111111.12 requests per second
-  latency summary (msec):
-          avg       min       p50       p95       p99       max
-        0.243     0.080     0.247     0.287     0.303     0.495
- INCR: rps=83404.0 (overall: 107479.4) avg_msec=0.251 (overall: 0.251)                                                                      INCR: rps=110605.6 (overall: 109242.7) avg_msec=0.244 (overall: 0.247)                                                                       INCR: rps=110692.0 (overall: 109764.0) avg_msec=0.245 (overall: 0.246)                                                                       ====== INCR ======
-  100000 requests completed in 0.90 seconds
-  50 parallel clients
-  3 bytes payload
-  keep alive: 1
-  multi-thread: no
-
-Latency by percentile distribution:
-0.000% <= 0.071 milliseconds (cumulative count 1)
-50.000% <= 0.247 milliseconds (cumulative count 56576)
-75.000% <= 0.263 milliseconds (cumulative count 75107)
-87.500% <= 0.279 milliseconds (cumulative count 91432)
-93.750% <= 0.287 milliseconds (cumulative count 95859)
-96.875% <= 0.295 milliseconds (cumulative count 98045)
-98.438% <= 0.303 milliseconds (cumulative count 99075)
-99.219% <= 0.311 milliseconds (cumulative count 99491)
-99.609% <= 0.319 milliseconds (cumulative count 99659)
-99.805% <= 0.367 milliseconds (cumulative count 99810)
-99.902% <= 0.439 milliseconds (cumulative count 99904)
-99.951% <= 0.511 milliseconds (cumulative count 99952)
-99.976% <= 0.535 milliseconds (cumulative count 99977)
-99.988% <= 0.575 milliseconds (cumulative count 99988)
-99.994% <= 0.679 milliseconds (cumulative count 99994)
-99.997% <= 0.719 milliseconds (cumulative count 99998)
-99.998% <= 0.751 milliseconds (cumulative count 99999)
-99.999% <= 0.791 milliseconds (cumulative count 100000)
+50.000% <= 0.231 milliseconds (cumulative count 50465)
+75.000% <= 0.255 milliseconds (cumulative count 76043)
+87.500% <= 0.271 milliseconds (cumulative count 90683)
+93.750% <= 0.279 milliseconds (cumulative count 95172)
+96.875% <= 0.287 milliseconds (cumulative count 97582)
+98.438% <= 0.295 milliseconds (cumulative count 98755)
+99.219% <= 0.303 milliseconds (cumulative count 99265)
+99.609% <= 0.319 milliseconds (cumulative count 99630)
+99.805% <= 0.359 milliseconds (cumulative count 99806)
+99.902% <= 0.439 milliseconds (cumulative count 99903)
+99.951% <= 0.487 milliseconds (cumulative count 99952)
+99.976% <= 0.623 milliseconds (cumulative count 99976)
+99.988% <= 0.711 milliseconds (cumulative count 99988)
+99.994% <= 0.751 milliseconds (cumulative count 99995)
+99.997% <= 0.759 milliseconds (cumulative count 99997)
+99.998% <= 0.791 milliseconds (cumulative count 100000)
 100.000% <= 0.791 milliseconds (cumulative count 100000)
 
 Cumulative distribution of latencies:
-0.008% <= 0.103 milliseconds (cumulative count 8)
-8.008% <= 0.207 milliseconds (cumulative count 8008)
-99.075% <= 0.303 milliseconds (cumulative count 99075)
-99.870% <= 0.407 milliseconds (cumulative count 99870)
-99.949% <= 0.503 milliseconds (cumulative count 99949)
-99.989% <= 0.607 milliseconds (cumulative count 99989)
-99.995% <= 0.703 milliseconds (cumulative count 99995)
+0.007% <= 0.103 milliseconds (cumulative count 7)
+10.607% <= 0.207 milliseconds (cumulative count 10607)
+99.265% <= 0.303 milliseconds (cumulative count 99265)
+99.840% <= 0.407 milliseconds (cumulative count 99840)
+99.957% <= 0.503 milliseconds (cumulative count 99957)
+99.974% <= 0.607 milliseconds (cumulative count 99974)
+99.987% <= 0.703 milliseconds (cumulative count 99987)
 100.000% <= 0.807 milliseconds (cumulative count 100000)
 
 Summary:
-  throughput summary: 111234.70 requests per second
+  throughput summary: 114416.48 requests per second
   latency summary (msec):
           avg       min       p50       p95       p99       max
-        0.243     0.064     0.247     0.287     0.303     0.791
- LPUSH: rps=16808.0 (overall: 95500.0) avg_msec=0.343 (overall: 0.343)                                                                      LPUSH: rps=120948.2 (overall: 117152.5) avg_msec=0.226 (overall: 0.240)                                                                        LPUSH: rps=113432.0 (overall: 115445.9) avg_msec=0.240 (overall: 0.240)                                                                        LPUSH: rps=115588.0 (overall: 115490.6) avg_msec=0.236 (overall: 0.239)                                                                        ====== LPUSH ======
-  100000 requests completed in 0.87 seconds
-  50 parallel clients
-  3 bytes payload
-  keep alive: 1
-  multi-thread: no
-
-Latency by percentile distribution:
-0.000% <= 0.071 milliseconds (cumulative count 2)
-50.000% <= 0.231 milliseconds (cumulative count 58322)
-75.000% <= 0.247 milliseconds (cumulative count 75383)
-87.500% <= 0.271 milliseconds (cumulative count 90781)
-93.750% <= 0.279 milliseconds (cumulative count 94643)
-96.875% <= 0.287 milliseconds (cumulative count 97100)
-98.438% <= 0.295 milliseconds (cumulative count 98526)
-99.219% <= 0.311 milliseconds (cumulative count 99431)
-99.609% <= 0.343 milliseconds (cumulative count 99633)
-99.805% <= 0.471 milliseconds (cumulative count 99811)
-99.902% <= 0.631 milliseconds (cumulative count 99904)
-99.951% <= 8.823 milliseconds (cumulative count 99952)
-99.976% <= 9.335 milliseconds (cumulative count 99976)
-99.988% <= 9.431 milliseconds (cumulative count 99988)
-99.994% <= 9.463 milliseconds (cumulative count 99994)
-99.997% <= 9.519 milliseconds (cumulative count 99997)
-99.998% <= 9.663 milliseconds (cumulative count 99999)
-99.999% <= 9.711 milliseconds (cumulative count 100000)
-100.000% <= 9.711 milliseconds (cumulative count 100000)
-
-Cumulative distribution of latencies:
-0.010% <= 0.103 milliseconds (cumulative count 10)
-11.684% <= 0.207 milliseconds (cumulative count 11684)
-99.167% <= 0.303 milliseconds (cumulative count 99167)
-99.710% <= 0.407 milliseconds (cumulative count 99710)
-99.870% <= 0.503 milliseconds (cumulative count 99870)
-99.897% <= 0.607 milliseconds (cumulative count 99897)
-99.950% <= 0.703 milliseconds (cumulative count 99950)
-99.956% <= 9.103 milliseconds (cumulative count 99956)
-100.000% <= 10.103 milliseconds (cumulative count 100000)
-
-Summary:
-  throughput summary: 115473.45 requests per second
-  latency summary (msec):
-          avg       min       p50       p95       p99       max
-        0.238     0.064     0.231     0.287     0.303     9.711
- RPUSH: rps=82406.4 (overall: 115553.1) avg_msec=0.233 (overall: 0.233)                                                                       RPUSH: rps=113320.0 (overall: 114251.8) avg_msec=0.240 (overall: 0.237)                                                                        RPUSH: rps=113520.0 (overall: 113982.3) avg_msec=0.239 (overall: 0.238)                                                                        ====== RPUSH ======
-  100000 requests completed in 0.87 seconds
-  50 parallel clients
-  3 bytes payload
-  keep alive: 1
-  multi-thread: no
-
-Latency by percentile distribution:
-0.000% <= 0.087 milliseconds (cumulative count 1)
-50.000% <= 0.231 milliseconds (cumulative count 52581)
-75.000% <= 0.255 milliseconds (cumulative count 77407)
-87.500% <= 0.271 milliseconds (cumulative count 89822)
-93.750% <= 0.279 milliseconds (cumulative count 94331)
-96.875% <= 0.287 milliseconds (cumulative count 96975)
-98.438% <= 0.303 milliseconds (cumulative count 99108)
-99.219% <= 0.311 milliseconds (cumulative count 99439)
-99.609% <= 0.327 milliseconds (cumulative count 99717)
-99.805% <= 0.343 milliseconds (cumulative count 99814)
-99.902% <= 0.391 milliseconds (cumulative count 99905)
-99.951% <= 0.455 milliseconds (cumulative count 99955)
-99.976% <= 0.487 milliseconds (cumulative count 99987)
-99.988% <= 0.495 milliseconds (cumulative count 99996)
-99.997% <= 0.503 milliseconds (cumulative count 99998)
-99.998% <= 0.511 milliseconds (cumulative count 100000)
-100.000% <= 0.511 milliseconds (cumulative count 100000)
-
-Cumulative distribution of latencies:
-0.005% <= 0.103 milliseconds (cumulative count 5)
-10.019% <= 0.207 milliseconds (cumulative count 10019)
-99.108% <= 0.303 milliseconds (cumulative count 99108)
-99.924% <= 0.407 milliseconds (cumulative count 99924)
-99.998% <= 0.503 milliseconds (cumulative count 99998)
-100.000% <= 0.607 milliseconds (cumulative count 100000)
-
-Summary:
-  throughput summary: 114942.53 requests per second
-  latency summary (msec):
-          avg       min       p50       p95       p99       max
-        0.236     0.080     0.231     0.287     0.303     0.511
- LPOP: rps=24812.8 (overall: 105559.3) avg_msec=0.252 (overall: 0.252)                                                                      LPOP: rps=106940.0 (overall: 106676.4) avg_msec=0.253 (overall: 0.253)                                                                       LPOP: rps=105864.0 (overall: 106313.1) avg_msec=0.255 (overall: 0.254)                                                                       LPOP: rps=112932.3 (overall: 108364.2) avg_msec=0.240 (overall: 0.249)                                                                       ====== LPOP ======
-  100000 requests completed in 0.93 seconds
-  50 parallel clients
-  3 bytes payload
-  keep alive: 1
-  multi-thread: no
-
-Latency by percentile distribution:
-0.000% <= 0.095 milliseconds (cumulative count 2)
-50.000% <= 0.255 milliseconds (cumulative count 53999)
-75.000% <= 0.271 milliseconds (cumulative count 78487)
-87.500% <= 0.279 milliseconds (cumulative count 88074)
-93.750% <= 0.287 milliseconds (cumulative count 94086)
-96.875% <= 0.295 milliseconds (cumulative count 97269)
-98.438% <= 0.303 milliseconds (cumulative count 98832)
-99.219% <= 0.311 milliseconds (cumulative count 99463)
-99.609% <= 0.319 milliseconds (cumulative count 99693)
-99.805% <= 0.335 milliseconds (cumulative count 99807)
-99.902% <= 0.471 milliseconds (cumulative count 99906)
-99.951% <= 0.495 milliseconds (cumulative count 99955)
-99.976% <= 0.543 milliseconds (cumulative count 99977)
-99.988% <= 0.567 milliseconds (cumulative count 99991)
-99.994% <= 0.575 milliseconds (cumulative count 99995)
-99.997% <= 0.583 milliseconds (cumulative count 99997)
-99.998% <= 0.591 milliseconds (cumulative count 100000)
-100.000% <= 0.591 milliseconds (cumulative count 100000)
-
-Cumulative distribution of latencies:
-0.003% <= 0.103 milliseconds (cumulative count 3)
-4.602% <= 0.207 milliseconds (cumulative count 4602)
-98.832% <= 0.303 milliseconds (cumulative count 98832)
-99.891% <= 0.407 milliseconds (cumulative count 99891)
-99.963% <= 0.503 milliseconds (cumulative count 99963)
-100.000% <= 0.607 milliseconds (cumulative count 100000)
-
-Summary:
-  throughput summary: 107642.62 requests per second
-  latency summary (msec):
-          avg       min       p50       p95       p99       max
-        0.251     0.088     0.255     0.295     0.311     0.591
- RPOP: rps=56192.0 (overall: 108061.5) avg_msec=0.249 (overall: 0.249)                                                                      RPOP: rps=110545.8 (overall: 109698.2) avg_msec=0.245 (overall: 0.247)                                                                       RPOP: rps=112464.0 (overall: 110794.0) avg_msec=0.242 (overall: 0.245)                                                                       RPOP: rps=114100.0 (overall: 111732.1) avg_msec=0.239 (overall: 0.243)                                                                       ====== RPOP ======
-  100000 requests completed in 0.90 seconds
-  50 parallel clients
-  3 bytes payload
-  keep alive: 1
-  multi-thread: no
-
-Latency by percentile distribution:
-0.000% <= 0.087 milliseconds (cumulative count 1)
-50.000% <= 0.239 milliseconds (cumulative count 51011)
-75.000% <= 0.263 milliseconds (cumulative count 75742)
-87.500% <= 0.279 milliseconds (cumulative count 91126)
-93.750% <= 0.287 milliseconds (cumulative count 95360)
-96.875% <= 0.295 milliseconds (cumulative count 97632)
-98.438% <= 0.303 milliseconds (cumulative count 98720)
-99.219% <= 0.319 milliseconds (cumulative count 99413)
-99.609% <= 0.343 milliseconds (cumulative count 99616)
-99.805% <= 0.423 milliseconds (cumulative count 99815)
-99.902% <= 0.503 milliseconds (cumulative count 99906)
-99.951% <= 0.679 milliseconds (cumulative count 99956)
-99.976% <= 0.695 milliseconds (cumulative count 99979)
-99.988% <= 0.711 milliseconds (cumulative count 99990)
-99.994% <= 0.719 milliseconds (cumulative count 99995)
-99.997% <= 0.727 milliseconds (cumulative count 99998)
-99.998% <= 0.735 milliseconds (cumulative count 100000)
-100.000% <= 0.735 milliseconds (cumulative count 100000)
-
-Cumulative distribution of latencies:
-0.002% <= 0.103 milliseconds (cumulative count 2)
-7.282% <= 0.207 milliseconds (cumulative count 7282)
-98.720% <= 0.303 milliseconds (cumulative count 98720)
-99.793% <= 0.407 milliseconds (cumulative count 99793)
-99.906% <= 0.503 milliseconds (cumulative count 99906)
-99.947% <= 0.607 milliseconds (cumulative count 99947)
-99.985% <= 0.703 milliseconds (cumulative count 99985)
-100.000% <= 0.807 milliseconds (cumulative count 100000)
-
-Summary:
-  throughput summary: 111482.72 requests per second
-  latency summary (msec):
-          avg       min       p50       p95       p99       max
-        0.243     0.080     0.239     0.287     0.311     0.735
- HSET: rps=107661.4 (overall: 115482.9) avg_msec=0.234 (overall: 0.234)                                                                       HSET: rps=115872.0 (overall: 115683.9) avg_msec=0.236 (overall: 0.235)                                                                       HSET: rps=113672.0 (overall: 114998.6) avg_msec=0.239 (overall: 0.237)                                                                       ====== HSET ======
-  100000 requests completed in 0.87 seconds
-  50 parallel clients
-  3 bytes payload
-  keep alive: 1
-  multi-thread: no
-
-Latency by percentile distribution:
-0.000% <= 0.087 milliseconds (cumulative count 1)
-50.000% <= 0.231 milliseconds (cumulative count 53568)
-75.000% <= 0.255 milliseconds (cumulative count 78186)
-87.500% <= 0.271 milliseconds (cumulative count 89831)
-93.750% <= 0.279 milliseconds (cumulative count 94248)
-96.875% <= 0.287 milliseconds (cumulative count 96956)
-98.438% <= 0.295 milliseconds (cumulative count 98444)
-99.219% <= 0.311 milliseconds (cumulative count 99544)
-99.609% <= 0.319 milliseconds (cumulative count 99716)
-99.805% <= 0.335 milliseconds (cumulative count 99817)
-99.902% <= 0.391 milliseconds (cumulative count 99904)
-99.951% <= 0.463 milliseconds (cumulative count 99957)
-99.976% <= 0.543 milliseconds (cumulative count 99977)
-99.988% <= 0.567 milliseconds (cumulative count 99992)
-99.994% <= 0.575 milliseconds (cumulative count 99995)
-99.997% <= 0.583 milliseconds (cumulative count 99997)
-99.998% <= 0.591 milliseconds (cumulative count 99999)
-99.999% <= 0.599 milliseconds (cumulative count 100000)
-100.000% <= 0.599 milliseconds (cumulative count 100000)
-
-Cumulative distribution of latencies:
-0.005% <= 0.103 milliseconds (cumulative count 5)
-9.596% <= 0.207 milliseconds (cumulative count 9596)
-99.177% <= 0.303 milliseconds (cumulative count 99177)
-99.918% <= 0.407 milliseconds (cumulative count 99918)
-99.974% <= 0.503 milliseconds (cumulative count 99974)
-100.000% <= 0.607 milliseconds (cumulative count 100000)
-
-Summary:
-  throughput summary: 115340.26 requests per second
-  latency summary (msec):
-          avg       min       p50       p95       p99       max
-        0.236     0.080     0.231     0.287     0.303     0.599
- LPUSH (needed to benchmark LRANGE): rps=49545.8 (overall: 106290.6) avg_msec=0.253 (overall: 0.253)                                                                                                    LPUSH (needed to benchmark LRANGE): rps=113868.0 (overall: 111452.3) avg_msec=0.239 (overall: 0.243)                                                                                                     LPUSH (needed to benchmark LRANGE): rps=111584.0 (overall: 111505.7) avg_msec=0.243 (overall: 0.243)                                                                                                     LPUSH (needed to benchmark LRANGE): rps=120468.0 (overall: 114090.0) avg_msec=0.227 (overall: 0.238)                                                                                                     ====== LPUSH (needed to benchmark LRANGE) ======
-  100000 requests completed in 0.88 seconds
+        0.237     0.072     0.231     0.279     0.303     0.791
+ GET: rps=61868.0 (overall: 121787.4) avg_msec=0.224 (overall: 0.224)                                                                     GET: rps=118564.0 (overall: 119649.9) avg_msec=0.230 (overall: 0.228)                                                                      GET: rps=117486.1 (overall: 118785.0) avg_msec=0.231 (overall: 0.229)                                                                      ====== GET ======
+  100000 requests completed in 0.85 seconds
   50 parallel clients
   3 bytes payload
   keep alive: 1
@@ -339,266 +49,557 @@ Summary:
 
 Latency by percentile distribution:
 0.000% <= 0.087 milliseconds (cumulative count 2)
-50.000% <= 0.239 milliseconds (cumulative count 59158)
-75.000% <= 0.263 milliseconds (cumulative count 80769)
-87.500% <= 0.271 milliseconds (cumulative count 87826)
-93.750% <= 0.287 milliseconds (cumulative count 96566)
-96.875% <= 0.295 milliseconds (cumulative count 98225)
-98.438% <= 0.303 milliseconds (cumulative count 99065)
-99.219% <= 0.311 milliseconds (cumulative count 99478)
-99.609% <= 0.319 milliseconds (cumulative count 99674)
-99.805% <= 0.351 milliseconds (cumulative count 99813)
-99.902% <= 0.423 milliseconds (cumulative count 99905)
-99.951% <= 0.471 milliseconds (cumulative count 99957)
-99.976% <= 0.519 milliseconds (cumulative count 99978)
-99.988% <= 0.535 milliseconds (cumulative count 99990)
-99.994% <= 0.543 milliseconds (cumulative count 99996)
-99.997% <= 0.551 milliseconds (cumulative count 99999)
-99.999% <= 0.559 milliseconds (cumulative count 100000)
-100.000% <= 0.559 milliseconds (cumulative count 100000)
+50.000% <= 0.231 milliseconds (cumulative count 65052)
+75.000% <= 0.239 milliseconds (cumulative count 75606)
+87.500% <= 0.263 milliseconds (cumulative count 88742)
+93.750% <= 0.279 milliseconds (cumulative count 95248)
+96.875% <= 0.287 milliseconds (cumulative count 97343)
+98.438% <= 0.295 milliseconds (cumulative count 98605)
+99.219% <= 0.303 milliseconds (cumulative count 99304)
+99.609% <= 0.311 milliseconds (cumulative count 99653)
+99.805% <= 0.327 milliseconds (cumulative count 99850)
+99.902% <= 0.399 milliseconds (cumulative count 99905)
+99.951% <= 0.455 milliseconds (cumulative count 99952)
+99.976% <= 0.471 milliseconds (cumulative count 99978)
+99.988% <= 0.479 milliseconds (cumulative count 99991)
+99.994% <= 0.487 milliseconds (cumulative count 99997)
+99.998% <= 0.495 milliseconds (cumulative count 100000)
+100.000% <= 0.495 milliseconds (cumulative count 100000)
 
 Cumulative distribution of latencies:
-0.003% <= 0.103 milliseconds (cumulative count 3)
-9.204% <= 0.207 milliseconds (cumulative count 9204)
-99.065% <= 0.303 milliseconds (cumulative count 99065)
-99.893% <= 0.407 milliseconds (cumulative count 99893)
-99.974% <= 0.503 milliseconds (cumulative count 99974)
-100.000% <= 0.607 milliseconds (cumulative count 100000)
+0.004% <= 0.103 milliseconds (cumulative count 4)
+14.265% <= 0.207 milliseconds (cumulative count 14265)
+99.304% <= 0.303 milliseconds (cumulative count 99304)
+99.912% <= 0.407 milliseconds (cumulative count 99912)
+100.000% <= 0.503 milliseconds (cumulative count 100000)
 
 Summary:
-  throughput summary: 113895.21 requests per second
+  throughput summary: 118343.19 requests per second
   latency summary (msec):
           avg       min       p50       p95       p99       max
-        0.239     0.080     0.239     0.287     0.303     0.559
- LRANGE_100 (first 100 elements): rps=39984.1 (overall: 41991.6) avg_msec=1.141 (overall: 1.141)                                                                                                LRANGE_100 (first 100 elements): rps=47460.0 (overall: 44787.3) avg_msec=1.016 (overall: 1.074)                                                                                                LRANGE_100 (first 100 elements): rps=45884.0 (overall: 45158.3) avg_msec=1.071 (overall: 1.073)                                                                                                LRANGE_100 (first 100 elements): rps=46956.0 (overall: 45612.7) avg_msec=1.044 (overall: 1.065)                                                                                                LRANGE_100 (first 100 elements): rps=45394.4 (overall: 45568.5) avg_msec=1.082 (overall: 1.069)                                                                                                LRANGE_100 (first 100 elements): rps=46548.0 (overall: 45732.9) avg_msec=1.055 (overall: 1.066)                                                                                                LRANGE_100 (first 100 elements): rps=45552.0 (overall: 45706.9) avg_msec=1.080 (overall: 1.068)                                                                                                LRANGE_100 (first 100 elements): rps=45540.0 (overall: 45685.9) avg_msec=1.076 (overall: 1.069)                                                                                                ====== LRANGE_100 (first 100 elements) ======
-  100000 requests completed in 2.18 seconds
+        0.230     0.080     0.231     0.279     0.303     0.495
+ INCR: rps=14232.0 (overall: 111187.5) avg_msec=0.241 (overall: 0.241)                                                                      INCR: rps=115382.5 (overall: 114908.1) avg_msec=0.235 (overall: 0.236)                                                                       INCR: rps=110500.0 (overall: 112840.5) avg_msec=0.245 (overall: 0.240)                                                                       INCR: rps=113416.0 (overall: 113024.3) avg_msec=0.239 (overall: 0.240)                                                                       ====== INCR ======
+  100000 requests completed in 0.89 seconds
   50 parallel clients
   3 bytes payload
   keep alive: 1
   multi-thread: no
 
 Latency by percentile distribution:
-0.000% <= 0.143 milliseconds (cumulative count 1)
-50.000% <= 1.063 milliseconds (cumulative count 52898)
-75.000% <= 1.111 milliseconds (cumulative count 76557)
-87.500% <= 1.151 milliseconds (cumulative count 89222)
-93.750% <= 1.183 milliseconds (cumulative count 94555)
-96.875% <= 1.215 milliseconds (cumulative count 96985)
-98.438% <= 1.271 milliseconds (cumulative count 98520)
-99.219% <= 1.335 milliseconds (cumulative count 99231)
-99.609% <= 1.495 milliseconds (cumulative count 99617)
-99.805% <= 1.599 milliseconds (cumulative count 99828)
-99.902% <= 1.647 milliseconds (cumulative count 99905)
-99.951% <= 17.679 milliseconds (cumulative count 99952)
-99.976% <= 18.799 milliseconds (cumulative count 99976)
-99.988% <= 19.135 milliseconds (cumulative count 99988)
-99.994% <= 19.279 milliseconds (cumulative count 99994)
-99.997% <= 19.327 milliseconds (cumulative count 99997)
-99.998% <= 19.359 milliseconds (cumulative count 99999)
-99.999% <= 19.375 milliseconds (cumulative count 100000)
-100.000% <= 19.375 milliseconds (cumulative count 100000)
+0.000% <= 0.047 milliseconds (cumulative count 1)
+50.000% <= 0.239 milliseconds (cumulative count 54721)
+75.000% <= 0.263 milliseconds (cumulative count 76666)
+87.500% <= 0.279 milliseconds (cumulative count 90736)
+93.750% <= 0.287 milliseconds (cumulative count 94971)
+96.875% <= 0.295 milliseconds (cumulative count 97472)
+98.438% <= 0.303 milliseconds (cumulative count 98761)
+99.219% <= 0.311 milliseconds (cumulative count 99361)
+99.609% <= 0.327 milliseconds (cumulative count 99691)
+99.805% <= 0.359 milliseconds (cumulative count 99812)
+99.902% <= 0.439 milliseconds (cumulative count 99904)
+99.951% <= 0.487 milliseconds (cumulative count 99955)
+99.976% <= 0.519 milliseconds (cumulative count 99978)
+99.988% <= 0.535 milliseconds (cumulative count 99988)
+99.994% <= 0.551 milliseconds (cumulative count 99995)
+99.997% <= 0.575 milliseconds (cumulative count 99997)
+99.998% <= 0.647 milliseconds (cumulative count 99999)
+99.999% <= 0.711 milliseconds (cumulative count 100000)
+100.000% <= 0.711 milliseconds (cumulative count 100000)
+
+Cumulative distribution of latencies:
+0.006% <= 0.103 milliseconds (cumulative count 6)
+8.490% <= 0.207 milliseconds (cumulative count 8490)
+98.761% <= 0.303 milliseconds (cumulative count 98761)
+99.873% <= 0.407 milliseconds (cumulative count 99873)
+99.963% <= 0.503 milliseconds (cumulative count 99963)
+99.997% <= 0.607 milliseconds (cumulative count 99997)
+99.999% <= 0.703 milliseconds (cumulative count 99999)
+100.000% <= 0.807 milliseconds (cumulative count 100000)
+
+Summary:
+  throughput summary: 112233.45 requests per second
+  latency summary (msec):
+          avg       min       p50       p95       p99       max
+        0.241     0.040     0.239     0.295     0.311     0.711
+ LPUSH: rps=55416.0 (overall: 98957.1) avg_msec=0.290 (overall: 0.290)                                                                      LPUSH: rps=115804.8 (overall: 109772.4) avg_msec=0.235 (overall: 0.253)                                                                        LPUSH: rps=119504.0 (overall: 113567.9) avg_msec=0.228 (overall: 0.243)                                                                        ====== LPUSH ======
+  100000 requests completed in 0.88 seconds
+  50 parallel clients
+  3 bytes payload
+  keep alive: 1
+  multi-thread: no
+
+Latency by percentile distribution:
+0.000% <= 0.087 milliseconds (cumulative count 1)
+50.000% <= 0.231 milliseconds (cumulative count 50537)
+75.000% <= 0.255 milliseconds (cumulative count 75561)
+87.500% <= 0.271 milliseconds (cumulative count 88506)
+93.750% <= 0.287 milliseconds (cumulative count 96305)
+96.875% <= 0.295 milliseconds (cumulative count 98199)
+98.438% <= 0.303 milliseconds (cumulative count 99070)
+99.219% <= 0.311 milliseconds (cumulative count 99458)
+99.609% <= 0.327 milliseconds (cumulative count 99672)
+99.805% <= 0.407 milliseconds (cumulative count 99810)
+99.902% <= 0.471 milliseconds (cumulative count 99904)
+99.951% <= 9.639 milliseconds (cumulative count 99952)
+99.976% <= 9.871 milliseconds (cumulative count 99976)
+99.988% <= 10.111 milliseconds (cumulative count 99988)
+99.994% <= 10.279 milliseconds (cumulative count 99994)
+99.997% <= 10.335 milliseconds (cumulative count 99997)
+99.998% <= 10.391 milliseconds (cumulative count 99999)
+99.999% <= 10.415 milliseconds (cumulative count 100000)
+100.000% <= 10.415 milliseconds (cumulative count 100000)
+
+Cumulative distribution of latencies:
+0.005% <= 0.103 milliseconds (cumulative count 5)
+9.730% <= 0.207 milliseconds (cumulative count 9730)
+99.070% <= 0.303 milliseconds (cumulative count 99070)
+99.810% <= 0.407 milliseconds (cumulative count 99810)
+99.928% <= 0.503 milliseconds (cumulative count 99928)
+99.938% <= 0.607 milliseconds (cumulative count 99938)
+99.944% <= 0.703 milliseconds (cumulative count 99944)
+99.950% <= 0.807 milliseconds (cumulative count 99950)
+99.987% <= 10.103 milliseconds (cumulative count 99987)
+100.000% <= 11.103 milliseconds (cumulative count 100000)
+
+Summary:
+  throughput summary: 113250.28 requests per second
+  latency summary (msec):
+          avg       min       p50       p95       p99       max
+        0.242     0.080     0.231     0.287     0.303    10.415
+ RPUSH: rps=2916.0 (overall: 104142.9) avg_msec=0.250 (overall: 0.250)                                                                      RPUSH: rps=108031.9 (overall: 107926.4) avg_msec=0.249 (overall: 0.249)                                                                        RPUSH: rps=110600.0 (overall: 109242.1) avg_msec=0.245 (overall: 0.247)                                                                        RPUSH: rps=112176.0 (overall: 110209.8) avg_msec=0.242 (overall: 0.246)                                                                        ====== RPUSH ======
+  100000 requests completed in 0.91 seconds
+  50 parallel clients
+  3 bytes payload
+  keep alive: 1
+  multi-thread: no
+
+Latency by percentile distribution:
+0.000% <= 0.071 milliseconds (cumulative count 1)
+50.000% <= 0.247 milliseconds (cumulative count 52103)
+75.000% <= 0.271 milliseconds (cumulative count 84142)
+87.500% <= 0.279 milliseconds (cumulative count 91475)
+93.750% <= 0.287 milliseconds (cumulative count 95818)
+96.875% <= 0.295 milliseconds (cumulative count 97886)
+98.438% <= 0.303 milliseconds (cumulative count 98836)
+99.219% <= 0.311 milliseconds (cumulative count 99297)
+99.609% <= 0.335 milliseconds (cumulative count 99664)
+99.805% <= 0.383 milliseconds (cumulative count 99823)
+99.902% <= 0.439 milliseconds (cumulative count 99915)
+99.951% <= 0.463 milliseconds (cumulative count 99953)
+99.976% <= 0.479 milliseconds (cumulative count 99978)
+99.988% <= 0.487 milliseconds (cumulative count 99989)
+99.994% <= 0.495 milliseconds (cumulative count 99996)
+99.997% <= 0.503 milliseconds (cumulative count 99999)
+99.999% <= 0.511 milliseconds (cumulative count 100000)
+100.000% <= 0.511 milliseconds (cumulative count 100000)
+
+Cumulative distribution of latencies:
+0.005% <= 0.103 milliseconds (cumulative count 5)
+5.403% <= 0.207 milliseconds (cumulative count 5403)
+98.836% <= 0.303 milliseconds (cumulative count 98836)
+99.871% <= 0.407 milliseconds (cumulative count 99871)
+99.999% <= 0.503 milliseconds (cumulative count 99999)
+100.000% <= 0.607 milliseconds (cumulative count 100000)
+
+Summary:
+  throughput summary: 109890.11 requests per second
+  latency summary (msec):
+          avg       min       p50       p95       p99       max
+        0.246     0.064     0.247     0.287     0.311     0.511
+ LPOP: rps=45621.5 (overall: 118051.5) avg_msec=0.231 (overall: 0.231)                                                                      LPOP: rps=112004.0 (overall: 113694.5) avg_msec=0.242 (overall: 0.239)                                                                       LPOP: rps=120404.0 (overall: 116504.2) avg_msec=0.227 (overall: 0.234)                                                                       LPOP: rps=105761.0 (overall: 113324.3) avg_msec=0.255 (overall: 0.240)                                                                       ====== LPOP ======
+  100000 requests completed in 0.88 seconds
+  50 parallel clients
+  3 bytes payload
+  keep alive: 1
+  multi-thread: no
+
+Latency by percentile distribution:
+0.000% <= 0.047 milliseconds (cumulative count 1)
+50.000% <= 0.239 milliseconds (cumulative count 57843)
+75.000% <= 0.263 milliseconds (cumulative count 80442)
+87.500% <= 0.271 milliseconds (cumulative count 87723)
+93.750% <= 0.287 milliseconds (cumulative count 96358)
+96.875% <= 0.295 milliseconds (cumulative count 98011)
+98.438% <= 0.303 milliseconds (cumulative count 98815)
+99.219% <= 0.319 milliseconds (cumulative count 99404)
+99.609% <= 0.351 milliseconds (cumulative count 99635)
+99.805% <= 0.399 milliseconds (cumulative count 99805)
+99.902% <= 0.431 milliseconds (cumulative count 99906)
+99.951% <= 0.511 milliseconds (cumulative count 99959)
+99.976% <= 0.543 milliseconds (cumulative count 99978)
+99.988% <= 0.599 milliseconds (cumulative count 99988)
+99.994% <= 0.647 milliseconds (cumulative count 99995)
+99.997% <= 0.679 milliseconds (cumulative count 99997)
+99.998% <= 0.695 milliseconds (cumulative count 99999)
+99.999% <= 0.759 milliseconds (cumulative count 100000)
+100.000% <= 0.759 milliseconds (cumulative count 100000)
+
+Cumulative distribution of latencies:
+0.008% <= 0.103 milliseconds (cumulative count 8)
+9.329% <= 0.207 milliseconds (cumulative count 9329)
+98.815% <= 0.303 milliseconds (cumulative count 98815)
+99.830% <= 0.407 milliseconds (cumulative count 99830)
+99.950% <= 0.503 milliseconds (cumulative count 99950)
+99.990% <= 0.607 milliseconds (cumulative count 99990)
+99.999% <= 0.703 milliseconds (cumulative count 99999)
+100.000% <= 0.807 milliseconds (cumulative count 100000)
+
+Summary:
+  throughput summary: 113636.37 requests per second
+  latency summary (msec):
+          avg       min       p50       p95       p99       max
+        0.239     0.040     0.239     0.287     0.311     0.759
+ RPOP: rps=96804.0 (overall: 112041.7) avg_msec=0.242 (overall: 0.242)                                                                      RPOP: rps=108856.0 (overall: 110332.6) avg_msec=0.248 (overall: 0.246)                                                                       RPOP: rps=112888.0 (overall: 111224.9) avg_msec=0.241 (overall: 0.244)                                                                       ====== RPOP ======
+  100000 requests completed in 0.90 seconds
+  50 parallel clients
+  3 bytes payload
+  keep alive: 1
+  multi-thread: no
+
+Latency by percentile distribution:
+0.000% <= 0.087 milliseconds (cumulative count 1)
+50.000% <= 0.247 milliseconds (cumulative count 57456)
+75.000% <= 0.263 milliseconds (cumulative count 75794)
+87.500% <= 0.279 milliseconds (cumulative count 90922)
+93.750% <= 0.287 milliseconds (cumulative count 95278)
+96.875% <= 0.295 milliseconds (cumulative count 97752)
+98.438% <= 0.303 milliseconds (cumulative count 98948)
+99.219% <= 0.311 milliseconds (cumulative count 99483)
+99.609% <= 0.319 milliseconds (cumulative count 99685)
+99.805% <= 0.343 milliseconds (cumulative count 99824)
+99.902% <= 0.391 milliseconds (cumulative count 99909)
+99.951% <= 0.423 milliseconds (cumulative count 99957)
+99.976% <= 0.471 milliseconds (cumulative count 99980)
+99.988% <= 0.479 milliseconds (cumulative count 99990)
+99.994% <= 0.487 milliseconds (cumulative count 99995)
+99.997% <= 0.495 milliseconds (cumulative count 99999)
+99.999% <= 0.503 milliseconds (cumulative count 100000)
+100.000% <= 0.503 milliseconds (cumulative count 100000)
+
+Cumulative distribution of latencies:
+0.005% <= 0.103 milliseconds (cumulative count 5)
+7.041% <= 0.207 milliseconds (cumulative count 7041)
+98.948% <= 0.303 milliseconds (cumulative count 98948)
+99.933% <= 0.407 milliseconds (cumulative count 99933)
+100.000% <= 0.503 milliseconds (cumulative count 100000)
+
+Summary:
+  throughput summary: 111234.70 requests per second
+  latency summary (msec):
+          avg       min       p50       p95       p99       max
+        0.244     0.080     0.247     0.287     0.311     0.503
+ HSET: rps=27649.4 (overall: 103582.1) avg_msec=0.258 (overall: 0.258)                                                                      HSET: rps=106332.0 (overall: 105750.8) avg_msec=0.254 (overall: 0.255)                                                                       HSET: rps=111148.0 (overall: 108130.5) avg_msec=0.245 (overall: 0.250)                                                                       HSET: rps=104259.0 (overall: 106942.5) avg_msec=0.257 (overall: 0.253)                                                                       ====== HSET ======
+  100000 requests completed in 0.94 seconds
+  50 parallel clients
+  3 bytes payload
+  keep alive: 1
+  multi-thread: no
+
+Latency by percentile distribution:
+0.000% <= 0.079 milliseconds (cumulative count 1)
+50.000% <= 0.255 milliseconds (cumulative count 51691)
+75.000% <= 0.271 milliseconds (cumulative count 81074)
+87.500% <= 0.279 milliseconds (cumulative count 90789)
+93.750% <= 0.287 milliseconds (cumulative count 95929)
+96.875% <= 0.295 milliseconds (cumulative count 98193)
+98.438% <= 0.303 milliseconds (cumulative count 99077)
+99.219% <= 0.311 milliseconds (cumulative count 99419)
+99.609% <= 0.327 milliseconds (cumulative count 99652)
+99.805% <= 0.383 milliseconds (cumulative count 99816)
+99.902% <= 0.455 milliseconds (cumulative count 99909)
+99.951% <= 0.471 milliseconds (cumulative count 99965)
+99.976% <= 0.479 milliseconds (cumulative count 99982)
+99.988% <= 0.487 milliseconds (cumulative count 99995)
+99.997% <= 0.495 milliseconds (cumulative count 99999)
+99.999% <= 0.503 milliseconds (cumulative count 100000)
+100.000% <= 0.503 milliseconds (cumulative count 100000)
+
+Cumulative distribution of latencies:
+0.005% <= 0.103 milliseconds (cumulative count 5)
+3.462% <= 0.207 milliseconds (cumulative count 3462)
+99.077% <= 0.303 milliseconds (cumulative count 99077)
+99.845% <= 0.407 milliseconds (cumulative count 99845)
+100.000% <= 0.503 milliseconds (cumulative count 100000)
+
+Summary:
+  throughput summary: 106837.61 requests per second
+  latency summary (msec):
+          avg       min       p50       p95       p99       max
+        0.253     0.072     0.255     0.287     0.303     0.503
+ LPUSH (needed to benchmark LRANGE): rps=56596.0 (overall: 108007.6) avg_msec=0.250 (overall: 0.250)                                                                                                    LPUSH (needed to benchmark LRANGE): rps=111288.0 (overall: 110160.1) avg_msec=0.244 (overall: 0.246)                                                                                                     LPUSH (needed to benchmark LRANGE): rps=117219.1 (overall: 112963.6) avg_msec=0.232 (overall: 0.240)                                                                                                     LPUSH (needed to benchmark LRANGE): rps=112284.0 (overall: 112771.0) avg_msec=0.242 (overall: 0.241)                                                                                                     ====== LPUSH (needed to benchmark LRANGE) ======
+  100000 requests completed in 0.89 seconds
+  50 parallel clients
+  3 bytes payload
+  keep alive: 1
+  multi-thread: no
+
+Latency by percentile distribution:
+0.000% <= 0.047 milliseconds (cumulative count 1)
+50.000% <= 0.239 milliseconds (cumulative count 53962)
+75.000% <= 0.263 milliseconds (cumulative count 79578)
+87.500% <= 0.271 milliseconds (cumulative count 87666)
+93.750% <= 0.287 milliseconds (cumulative count 96951)
+98.438% <= 0.295 milliseconds (cumulative count 98665)
+99.219% <= 0.303 milliseconds (cumulative count 99351)
+99.609% <= 0.311 milliseconds (cumulative count 99613)
+99.805% <= 0.367 milliseconds (cumulative count 99813)
+99.902% <= 0.431 milliseconds (cumulative count 99903)
+99.951% <= 0.487 milliseconds (cumulative count 99956)
+99.976% <= 0.543 milliseconds (cumulative count 99982)
+99.988% <= 0.567 milliseconds (cumulative count 99988)
+99.994% <= 0.631 milliseconds (cumulative count 99994)
+99.997% <= 0.663 milliseconds (cumulative count 99997)
+99.998% <= 0.735 milliseconds (cumulative count 99999)
+99.999% <= 0.791 milliseconds (cumulative count 100000)
+100.000% <= 0.791 milliseconds (cumulative count 100000)
+
+Cumulative distribution of latencies:
+0.007% <= 0.103 milliseconds (cumulative count 7)
+8.042% <= 0.207 milliseconds (cumulative count 8042)
+99.351% <= 0.303 milliseconds (cumulative count 99351)
+99.863% <= 0.407 milliseconds (cumulative count 99863)
+99.959% <= 0.503 milliseconds (cumulative count 99959)
+99.993% <= 0.607 milliseconds (cumulative count 99993)
+99.998% <= 0.703 milliseconds (cumulative count 99998)
+100.000% <= 0.807 milliseconds (cumulative count 100000)
+
+Summary:
+  throughput summary: 112866.82 requests per second
+  latency summary (msec):
+          avg       min       p50       p95       p99       max
+        0.241     0.040     0.239     0.287     0.303     0.791
+ LRANGE_100 (first 100 elements): rps=44076.0 (overall: 45159.8) avg_msec=1.086 (overall: 1.086)                                                                                                LRANGE_100 (first 100 elements): rps=46996.0 (overall: 46089.1) avg_msec=1.044 (overall: 1.064)                                                                                                LRANGE_100 (first 100 elements): rps=46725.1 (overall: 46303.4) avg_msec=1.043 (overall: 1.057)                                                                                                LRANGE_100 (first 100 elements): rps=46992.0 (overall: 46476.4) avg_msec=1.043 (overall: 1.054)                                                                                                LRANGE_100 (first 100 elements): rps=47468.0 (overall: 46675.5) avg_msec=1.032 (overall: 1.049)                                                                                                LRANGE_100 (first 100 elements): rps=46476.0 (overall: 46642.1) avg_msec=1.054 (overall: 1.050)                                                                                                LRANGE_100 (first 100 elements): rps=48512.0 (overall: 46910.0) avg_msec=1.002 (overall: 1.043)                                                                                                LRANGE_100 (first 100 elements): rps=48844.6 (overall: 47153.3) avg_msec=0.993 (overall: 1.036)                                                                                                ====== LRANGE_100 (first 100 elements) ======
+  100000 requests completed in 2.12 seconds
+  50 parallel clients
+  3 bytes payload
+  keep alive: 1
+  multi-thread: no
+
+Latency by percentile distribution:
+0.000% <= 0.095 milliseconds (cumulative count 2)
+50.000% <= 1.031 milliseconds (cumulative count 52499)
+75.000% <= 1.071 milliseconds (cumulative count 75033)
+87.500% <= 1.111 milliseconds (cumulative count 88413)
+93.750% <= 1.143 milliseconds (cumulative count 94277)
+96.875% <= 1.175 milliseconds (cumulative count 97322)
+98.438% <= 1.207 milliseconds (cumulative count 98586)
+99.219% <= 1.247 milliseconds (cumulative count 99308)
+99.609% <= 1.295 milliseconds (cumulative count 99631)
+99.805% <= 1.383 milliseconds (cumulative count 99810)
+99.902% <= 1.583 milliseconds (cumulative count 99904)
+99.951% <= 9.279 milliseconds (cumulative count 99952)
+99.976% <= 9.879 milliseconds (cumulative count 99977)
+99.988% <= 10.055 milliseconds (cumulative count 99988)
+99.994% <= 10.135 milliseconds (cumulative count 99994)
+99.997% <= 10.183 milliseconds (cumulative count 99997)
+99.998% <= 10.223 milliseconds (cumulative count 100000)
+100.000% <= 10.223 milliseconds (cumulative count 100000)
+
+Cumulative distribution of latencies:
+0.002% <= 0.103 milliseconds (cumulative count 2)
+0.008% <= 0.207 milliseconds (cumulative count 8)
+0.015% <= 0.303 milliseconds (cumulative count 15)
+0.029% <= 0.407 milliseconds (cumulative count 29)
+0.092% <= 0.503 milliseconds (cumulative count 92)
+0.262% <= 0.607 milliseconds (cumulative count 262)
+0.507% <= 0.703 milliseconds (cumulative count 507)
+1.012% <= 0.807 milliseconds (cumulative count 1012)
+3.461% <= 0.903 milliseconds (cumulative count 3461)
+37.184% <= 1.007 milliseconds (cumulative count 37184)
+86.377% <= 1.103 milliseconds (cumulative count 86377)
+98.586% <= 1.207 milliseconds (cumulative count 98586)
+99.667% <= 1.303 milliseconds (cumulative count 99667)
+99.829% <= 1.407 milliseconds (cumulative count 99829)
+99.882% <= 1.503 milliseconds (cumulative count 99882)
+99.906% <= 1.607 milliseconds (cumulative count 99906)
+99.921% <= 1.703 milliseconds (cumulative count 99921)
+99.938% <= 1.807 milliseconds (cumulative count 99938)
+99.944% <= 1.903 milliseconds (cumulative count 99944)
+99.949% <= 2.007 milliseconds (cumulative count 99949)
+99.950% <= 3.103 milliseconds (cumulative count 99950)
+99.951% <= 9.103 milliseconds (cumulative count 99951)
+99.990% <= 10.103 milliseconds (cumulative count 99990)
+100.000% <= 11.103 milliseconds (cumulative count 100000)
+
+Summary:
+  throughput summary: 47258.98 requests per second
+  latency summary (msec):
+          avg       min       p50       p95       p99       max
+        1.034     0.088     1.031     1.151     1.231    10.223
+ LRANGE_300 (first 300 elements): rps=8448.0 (overall: 16372.1) avg_msec=2.978 (overall: 2.978)                                                                                               LRANGE_300 (first 300 elements): rps=17060.0 (overall: 16825.9) avg_msec=2.893 (overall: 2.921)                                                                                                LRANGE_300 (first 300 elements): rps=17492.0 (overall: 17090.6) avg_msec=2.828 (overall: 2.883)                                                                                                LRANGE_300 (first 300 elements): rps=17442.2 (overall: 17190.9) avg_msec=2.811 (overall: 2.862)                                                                                                LRANGE_300 (first 300 elements): rps=16932.0 (overall: 17133.6) avg_msec=2.918 (overall: 2.874)                                                                                                LRANGE_300 (first 300 elements): rps=16940.0 (overall: 17098.6) avg_msec=2.921 (overall: 2.883)                                                                                                LRANGE_300 (first 300 elements): rps=16728.0 (overall: 17041.7) avg_msec=2.959 (overall: 2.894)                                                                                                LRANGE_300 (first 300 elements): rps=17418.3 (overall: 17092.0) avg_msec=2.816 (overall: 2.884)                                                                                                LRANGE_300 (first 300 elements): rps=16948.0 (overall: 17075.1) avg_msec=2.918 (overall: 2.888)                                                                                                LRANGE_300 (first 300 elements): rps=16728.0 (overall: 17038.6) avg_msec=2.957 (overall: 2.895)                                                                                                LRANGE_300 (first 300 elements): rps=17000.0 (overall: 17035.0) avg_msec=2.910 (overall: 2.896)                                                                                                LRANGE_300 (first 300 elements): rps=16709.2 (overall: 17006.6) avg_msec=2.939 (overall: 2.900)                                                                                                LRANGE_300 (first 300 elements): rps=16712.0 (overall: 16983.1) avg_msec=2.959 (overall: 2.905)                                                                                                LRANGE_300 (first 300 elements): rps=17312.0 (overall: 17007.4) avg_msec=2.859 (overall: 2.901)                                                                                                LRANGE_300 (first 300 elements): rps=16892.0 (overall: 16999.4) avg_msec=2.928 (overall: 2.903)                                                                                                LRANGE_300 (first 300 elements): rps=16848.6 (overall: 16989.7) avg_msec=2.923 (overall: 2.904)                                                                                                LRANGE_300 (first 300 elements): rps=16744.0 (overall: 16974.8) avg_msec=2.954 (overall: 2.907)                                                                                                LRANGE_300 (first 300 elements): rps=17000.0 (overall: 16976.3) avg_msec=2.909 (overall: 2.907)                                                                                                LRANGE_300 (first 300 elements): rps=17332.0 (overall: 16995.5) avg_msec=2.852 (overall: 2.904)                                                                                                LRANGE_300 (first 300 elements): rps=17056.0 (overall: 16998.6) avg_msec=2.897 (overall: 2.904)                                                                                                LRANGE_300 (first 300 elements): rps=16948.2 (overall: 16996.1) avg_msec=2.904 (overall: 2.904)                                                                                                LRANGE_300 (first 300 elements): rps=16856.0 (overall: 16989.6) avg_msec=2.936 (overall: 2.905)                                                                                                LRANGE_300 (first 300 elements): rps=17052.0 (overall: 16992.4) avg_msec=2.902 (overall: 2.905)                                                                                                ====== LRANGE_300 (first 300 elements) ======
+  100000 requests completed in 5.88 seconds
+  50 parallel clients
+  3 bytes payload
+  keep alive: 1
+  multi-thread: no
+
+Latency by percentile distribution:
+0.000% <= 0.175 milliseconds (cumulative count 1)
+50.000% <= 2.911 milliseconds (cumulative count 50161)
+75.000% <= 2.999 milliseconds (cumulative count 75041)
+87.500% <= 3.071 milliseconds (cumulative count 88468)
+93.750% <= 3.127 milliseconds (cumulative count 93951)
+96.875% <= 3.191 milliseconds (cumulative count 96990)
+98.438% <= 3.263 milliseconds (cumulative count 98456)
+99.219% <= 3.343 milliseconds (cumulative count 99273)
+99.609% <= 3.407 milliseconds (cumulative count 99614)
+99.805% <= 3.679 milliseconds (cumulative count 99805)
+99.902% <= 4.127 milliseconds (cumulative count 99903)
+99.951% <= 4.415 milliseconds (cumulative count 99952)
+99.976% <= 4.783 milliseconds (cumulative count 99976)
+99.988% <= 5.127 milliseconds (cumulative count 99988)
+99.994% <= 5.447 milliseconds (cumulative count 99994)
+99.997% <= 5.511 milliseconds (cumulative count 99997)
+99.998% <= 5.711 milliseconds (cumulative count 99999)
+99.999% <= 5.727 milliseconds (cumulative count 100000)
+100.000% <= 5.727 milliseconds (cumulative count 100000)
 
 Cumulative distribution of latencies:
 0.000% <= 0.103 milliseconds (cumulative count 0)
 0.001% <= 0.207 milliseconds (cumulative count 1)
-0.004% <= 0.303 milliseconds (cumulative count 4)
-0.008% <= 0.407 milliseconds (cumulative count 8)
-0.027% <= 0.503 milliseconds (cumulative count 27)
-0.623% <= 0.607 milliseconds (cumulative count 623)
-0.918% <= 0.703 milliseconds (cumulative count 918)
-1.309% <= 0.807 milliseconds (cumulative count 1309)
-2.745% <= 0.903 milliseconds (cumulative count 2745)
-23.936% <= 1.007 milliseconds (cumulative count 23936)
-73.065% <= 1.103 milliseconds (cumulative count 73065)
-96.530% <= 1.207 milliseconds (cumulative count 96530)
-98.943% <= 1.303 milliseconds (cumulative count 98943)
-99.500% <= 1.407 milliseconds (cumulative count 99500)
-99.626% <= 1.503 milliseconds (cumulative count 99626)
-99.841% <= 1.607 milliseconds (cumulative count 99841)
-99.932% <= 1.703 milliseconds (cumulative count 99932)
-99.942% <= 1.807 milliseconds (cumulative count 99942)
-99.947% <= 1.903 milliseconds (cumulative count 99947)
-99.949% <= 2.103 milliseconds (cumulative count 99949)
-99.950% <= 3.103 milliseconds (cumulative count 99950)
-99.954% <= 18.111 milliseconds (cumulative count 99954)
-99.987% <= 19.103 milliseconds (cumulative count 99987)
-100.000% <= 20.111 milliseconds (cumulative count 100000)
-
-Summary:
-  throughput summary: 45787.55 requests per second
-  latency summary (msec):
-          avg       min       p50       p95       p99       max
-        1.067     0.136     1.063     1.191     1.311    19.375
- LRANGE_300 (first 300 elements): rps=3832.0 (overall: 17418.2) avg_msec=2.782 (overall: 2.782)                                                                                               LRANGE_300 (first 300 elements): rps=16669.3 (overall: 16803.9) avg_msec=2.948 (overall: 2.917)                                                                                                LRANGE_300 (first 300 elements): rps=17188.0 (overall: 16976.6) avg_msec=2.879 (overall: 2.900)                                                                                                LRANGE_300 (first 300 elements): rps=16548.0 (overall: 16843.7) avg_msec=2.985 (overall: 2.926)                                                                                                LRANGE_300 (first 300 elements): rps=17376.0 (overall: 16969.7) avg_msec=2.849 (overall: 2.907)                                                                                                LRANGE_300 (first 300 elements): rps=16824.7 (overall: 16941.9) avg_msec=2.927 (overall: 2.911)                                                                                                LRANGE_300 (first 300 elements): rps=16440.0 (overall: 16861.3) avg_msec=3.011 (overall: 2.927)                                                                                                LRANGE_300 (first 300 elements): rps=17264.0 (overall: 16917.0) avg_msec=2.866 (overall: 2.918)                                                                                                LRANGE_300 (first 300 elements): rps=16912.0 (overall: 16916.4) avg_msec=2.929 (overall: 2.919)                                                                                                LRANGE_300 (first 300 elements): rps=17179.3 (overall: 16945.0) avg_msec=2.862 (overall: 2.913)                                                                                                LRANGE_300 (first 300 elements): rps=16868.0 (overall: 16937.5) avg_msec=2.930 (overall: 2.915)                                                                                                LRANGE_300 (first 300 elements): rps=16908.0 (overall: 16934.8) avg_msec=2.925 (overall: 2.916)                                                                                                LRANGE_300 (first 300 elements): rps=16768.0 (overall: 16921.2) avg_msec=2.950 (overall: 2.918)                                                                                                LRANGE_300 (first 300 elements): rps=16776.0 (overall: 16910.2) avg_msec=2.946 (overall: 2.920)                                                                                                LRANGE_300 (first 300 elements): rps=17000.0 (overall: 16916.5) avg_msec=2.900 (overall: 2.919)                                                                                                LRANGE_300 (first 300 elements): rps=17464.0 (overall: 16952.5) avg_msec=2.836 (overall: 2.913)                                                                                                LRANGE_300 (first 300 elements): rps=16848.0 (overall: 16946.0) avg_msec=2.938 (overall: 2.915)                                                                                                LRANGE_300 (first 300 elements): rps=17184.0 (overall: 16959.9) avg_msec=2.877 (overall: 2.913)                                                                                                LRANGE_300 (first 300 elements): rps=17510.0 (overall: 16990.1) avg_msec=2.815 (overall: 2.907)                                                                                                LRANGE_300 (first 300 elements): rps=16948.0 (overall: 16987.9) avg_msec=2.920 (overall: 2.908)                                                                                                LRANGE_300 (first 300 elements): rps=16568.0 (overall: 16967.2) avg_msec=2.985 (overall: 2.911)                                                                                                LRANGE_300 (first 300 elements): rps=17000.0 (overall: 16968.7) avg_msec=2.904 (overall: 2.911)                                                                                                LRANGE_300 (first 300 elements): rps=17212.0 (overall: 16979.7) avg_msec=2.874 (overall: 2.909)                                                                                                LRANGE_300 (first 300 elements): rps=17067.7 (overall: 16983.5) avg_msec=2.884 (overall: 2.908)                                                                                                ====== LRANGE_300 (first 300 elements) ======
-  100000 requests completed in 5.89 seconds
-  50 parallel clients
-  3 bytes payload
-  keep alive: 1
-  multi-thread: no
-
-Latency by percentile distribution:
-0.000% <= 0.255 milliseconds (cumulative count 1)
-50.000% <= 2.919 milliseconds (cumulative count 52051)
-75.000% <= 3.015 milliseconds (cumulative count 76302)
-87.500% <= 3.087 milliseconds (cumulative count 87959)
-93.750% <= 3.175 milliseconds (cumulative count 94083)
-96.875% <= 3.287 milliseconds (cumulative count 96928)
-98.438% <= 3.415 milliseconds (cumulative count 98455)
-99.219% <= 3.543 milliseconds (cumulative count 99236)
-99.609% <= 3.663 milliseconds (cumulative count 99621)
-99.805% <= 3.919 milliseconds (cumulative count 99808)
-99.902% <= 4.183 milliseconds (cumulative count 99903)
-99.951% <= 4.367 milliseconds (cumulative count 99953)
-99.976% <= 4.583 milliseconds (cumulative count 99977)
-99.988% <= 4.863 milliseconds (cumulative count 99988)
-99.994% <= 5.175 milliseconds (cumulative count 99994)
-99.997% <= 5.479 milliseconds (cumulative count 99997)
-99.998% <= 5.743 milliseconds (cumulative count 99999)
-99.999% <= 5.847 milliseconds (cumulative count 100000)
-100.000% <= 5.847 milliseconds (cumulative count 100000)
-
-Cumulative distribution of latencies:
-0.000% <= 0.103 milliseconds (cumulative count 0)
-0.001% <= 0.303 milliseconds (cumulative count 1)
 0.003% <= 0.407 milliseconds (cumulative count 3)
-0.004% <= 0.503 milliseconds (cumulative count 4)
+0.009% <= 0.503 milliseconds (cumulative count 9)
 0.010% <= 0.607 milliseconds (cumulative count 10)
-0.013% <= 0.703 milliseconds (cumulative count 13)
+0.011% <= 0.703 milliseconds (cumulative count 11)
 0.016% <= 0.807 milliseconds (cumulative count 16)
-0.019% <= 0.903 milliseconds (cumulative count 19)
-0.026% <= 1.007 milliseconds (cumulative count 26)
-0.031% <= 1.103 milliseconds (cumulative count 31)
-0.040% <= 1.207 milliseconds (cumulative count 40)
-0.049% <= 1.303 milliseconds (cumulative count 49)
-0.074% <= 1.407 milliseconds (cumulative count 74)
-0.106% <= 1.503 milliseconds (cumulative count 106)
-0.132% <= 1.607 milliseconds (cumulative count 132)
-0.167% <= 1.703 milliseconds (cumulative count 167)
-0.203% <= 1.807 milliseconds (cumulative count 203)
-0.240% <= 1.903 milliseconds (cumulative count 240)
-0.271% <= 2.007 milliseconds (cumulative count 271)
-0.306% <= 2.103 milliseconds (cumulative count 306)
-89.524% <= 3.103 milliseconds (cumulative count 89524)
-99.870% <= 4.103 milliseconds (cumulative count 99870)
-99.991% <= 5.103 milliseconds (cumulative count 99991)
+0.018% <= 0.903 milliseconds (cumulative count 18)
+0.029% <= 1.007 milliseconds (cumulative count 29)
+0.032% <= 1.103 milliseconds (cumulative count 32)
+0.036% <= 1.207 milliseconds (cumulative count 36)
+0.040% <= 1.303 milliseconds (cumulative count 40)
+0.052% <= 1.407 milliseconds (cumulative count 52)
+0.073% <= 1.503 milliseconds (cumulative count 73)
+0.085% <= 1.607 milliseconds (cumulative count 85)
+0.111% <= 1.703 milliseconds (cumulative count 111)
+0.139% <= 1.807 milliseconds (cumulative count 139)
+0.171% <= 1.903 milliseconds (cumulative count 171)
+0.217% <= 2.007 milliseconds (cumulative count 217)
+0.280% <= 2.103 milliseconds (cumulative count 280)
+92.060% <= 3.103 milliseconds (cumulative count 92060)
+99.897% <= 4.103 milliseconds (cumulative count 99897)
+99.985% <= 5.103 milliseconds (cumulative count 99985)
 100.000% <= 6.103 milliseconds (cumulative count 100000)
 
 Summary:
-  throughput summary: 16986.58 requests per second
+  throughput summary: 17003.91 requests per second
   latency summary (msec):
           avg       min       p50       p95       p99       max
-        2.908     0.248     2.919     3.207     3.495     5.847
- LRANGE_500 (first 500 elements): rps=6988.0 (overall: 10098.3) avg_msec=4.812 (overall: 4.812)                                                                                               LRANGE_500 (first 500 elements): rps=10404.0 (overall: 10279.0) avg_msec=4.756 (overall: 4.778)                                                                                                LRANGE_500 (first 500 elements): rps=10184.0 (overall: 10243.7) avg_msec=4.866 (overall: 4.811)                                                                                                LRANGE_500 (first 500 elements): rps=10251.0 (overall: 10245.7) avg_msec=4.810 (overall: 4.811)                                                                                                LRANGE_500 (first 500 elements): rps=10336.0 (overall: 10264.9) avg_msec=4.782 (overall: 4.804)                                                                                                LRANGE_500 (first 500 elements): rps=10560.0 (overall: 10316.7) avg_msec=4.691 (overall: 4.784)                                                                                                LRANGE_500 (first 500 elements): rps=10280.0 (overall: 10311.2) avg_msec=4.812 (overall: 4.788)                                                                                                LRANGE_500 (first 500 elements): rps=10306.8 (overall: 10310.6) avg_msec=4.791 (overall: 4.789)                                                                                                LRANGE_500 (first 500 elements): rps=10464.0 (overall: 10328.3) avg_msec=4.725 (overall: 4.781)                                                                                                LRANGE_500 (first 500 elements): rps=10428.0 (overall: 10338.6) avg_msec=4.747 (overall: 4.778)                                                                                                LRANGE_500 (first 500 elements): rps=10564.0 (overall: 10359.6) avg_msec=4.690 (overall: 4.769)                                                                                                LRANGE_500 (first 500 elements): rps=10220.0 (overall: 10347.7) avg_msec=4.848 (overall: 4.776)                                                                                                LRANGE_500 (first 500 elements): rps=10183.3 (overall: 10334.7) avg_msec=4.846 (overall: 4.781)                                                                                                LRANGE_500 (first 500 elements): rps=10336.0 (overall: 10334.8) avg_msec=4.791 (overall: 4.782)                                                                                                LRANGE_500 (first 500 elements): rps=10444.0 (overall: 10342.2) avg_msec=4.745 (overall: 4.779)                                                                                                LRANGE_500 (first 500 elements): rps=10364.0 (overall: 10343.6) avg_msec=4.777 (overall: 4.779)                                                                                                LRANGE_500 (first 500 elements): rps=10426.3 (overall: 10348.6) avg_msec=4.730 (overall: 4.776)                                                                                                LRANGE_500 (first 500 elements): rps=10360.0 (overall: 10349.2) avg_msec=4.783 (overall: 4.777)                                                                                                LRANGE_500 (first 500 elements): rps=10236.0 (overall: 10343.2) avg_msec=4.840 (overall: 4.780)                                                                                                LRANGE_500 (first 500 elements): rps=10231.1 (overall: 10337.5) avg_msec=4.828 (overall: 4.782)                                                                                                LRANGE_500 (first 500 elements): rps=10288.0 (overall: 10335.1) avg_msec=4.806 (overall: 4.784)                                                                                                LRANGE_500 (first 500 elements): rps=10320.0 (overall: 10334.4) avg_msec=4.797 (overall: 4.784)                                                                                                LRANGE_500 (first 500 elements): rps=10260.0 (overall: 10331.1) avg_msec=4.829 (overall: 4.786)                                                                                                LRANGE_500 (first 500 elements): rps=10278.9 (overall: 10328.9) avg_msec=4.803 (overall: 4.787)                                                                                                LRANGE_500 (first 500 elements): rps=10444.0 (overall: 10333.5) avg_msec=4.741 (overall: 4.785)                                                                                                LRANGE_500 (first 500 elements): rps=10412.0 (overall: 10336.6) avg_msec=4.750 (overall: 4.784)                                                                                                LRANGE_500 (first 500 elements): rps=10336.0 (overall: 10336.6) avg_msec=4.788 (overall: 4.784)                                                                                                LRANGE_500 (first 500 elements): rps=10268.0 (overall: 10334.1) avg_msec=4.825 (overall: 4.785)                                                                                                LRANGE_500 (first 500 elements): rps=10338.6 (overall: 10334.3) avg_msec=4.772 (overall: 4.785)                                                                                                LRANGE_500 (first 500 elements): rps=10420.0 (overall: 10337.1) avg_msec=4.759 (overall: 4.784)                                                                                                LRANGE_500 (first 500 elements): rps=10408.0 (overall: 10339.5) avg_msec=4.755 (overall: 4.783)                                                                                                LRANGE_500 (first 500 elements): rps=10324.0 (overall: 10339.0) avg_msec=4.799 (overall: 4.783)                                                                                                LRANGE_500 (first 500 elements): rps=10278.9 (overall: 10337.1) avg_msec=4.800 (overall: 4.784)                                                                                                LRANGE_500 (first 500 elements): rps=10416.0 (overall: 10339.5) avg_msec=4.755 (overall: 4.783)                                                                                                LRANGE_500 (first 500 elements): rps=10464.0 (overall: 10343.0) avg_msec=4.726 (overall: 4.781)                                                                                                LRANGE_500 (first 500 elements): rps=10552.0 (overall: 10348.9) avg_msec=4.695 (overall: 4.779)                                                                                                LRANGE_500 (first 500 elements): rps=10398.4 (overall: 10350.2) avg_msec=4.742 (overall: 4.778)                                                                                                LRANGE_500 (first 500 elements): rps=10220.0 (overall: 10346.8) avg_msec=4.849 (overall: 4.780)                                                                                                ====== LRANGE_500 (first 500 elements) ======
-  100000 requests completed in 9.66 seconds
+        2.904     0.168     2.911     3.151     3.311     5.727
+ LRANGE_500 (first 500 elements): rps=32.0 (overall: 4000.0) avg_msec=1.058 (overall: 1.058)                                                                                            LRANGE_500 (first 500 elements): rps=10282.9 (overall: 10233.2) avg_msec=4.780 (overall: 4.768)                                                                                                LRANGE_500 (first 500 elements): rps=10376.0 (overall: 10304.2) avg_msec=4.772 (overall: 4.770)                                                                                                LRANGE_500 (first 500 elements): rps=10176.0 (overall: 10261.6) avg_msec=4.871 (overall: 4.803)                                                                                                LRANGE_500 (first 500 elements): rps=10200.0 (overall: 10246.3) avg_msec=4.858 (overall: 4.817)                                                                                                LRANGE_500 (first 500 elements): rps=10386.5 (overall: 10274.3) avg_msec=4.746 (overall: 4.803)                                                                                                LRANGE_500 (first 500 elements): rps=10476.0 (overall: 10307.8) avg_msec=4.726 (overall: 4.790)                                                                                                LRANGE_500 (first 500 elements): rps=10456.0 (overall: 10329.0) avg_msec=4.734 (overall: 4.782)                                                                                                LRANGE_500 (first 500 elements): rps=10256.0 (overall: 10319.9) avg_msec=4.830 (overall: 4.788)                                                                                                LRANGE_500 (first 500 elements): rps=10095.6 (overall: 10294.9) avg_msec=4.886 (overall: 4.798)                                                                                                LRANGE_500 (first 500 elements): rps=10216.0 (overall: 10287.0) avg_msec=4.847 (overall: 4.803)                                                                                                LRANGE_500 (first 500 elements): rps=10312.0 (overall: 10289.3) avg_msec=4.801 (overall: 4.803)                                                                                                LRANGE_500 (first 500 elements): rps=10272.0 (overall: 10287.9) avg_msec=4.823 (overall: 4.805)                                                                                                LRANGE_500 (first 500 elements): rps=10330.7 (overall: 10291.2) avg_msec=4.774 (overall: 4.802)                                                                                                LRANGE_500 (first 500 elements): rps=10216.0 (overall: 10285.8) avg_msec=4.852 (overall: 4.806)                                                                                                LRANGE_500 (first 500 elements): rps=10312.0 (overall: 10287.5) avg_msec=4.806 (overall: 4.806)                                                                                                LRANGE_500 (first 500 elements): rps=10416.0 (overall: 10295.6) avg_msec=4.759 (overall: 4.803)                                                                                                LRANGE_500 (first 500 elements): rps=10346.6 (overall: 10298.6) avg_msec=4.763 (overall: 4.800)                                                                                                LRANGE_500 (first 500 elements): rps=10556.0 (overall: 10312.8) avg_msec=4.691 (overall: 4.794)                                                                                                LRANGE_500 (first 500 elements): rps=10096.0 (overall: 10301.5) avg_msec=4.904 (overall: 4.800)                                                                                                LRANGE_500 (first 500 elements): rps=10232.0 (overall: 10298.0) avg_msec=4.837 (overall: 4.802)                                                                                                LRANGE_500 (first 500 elements): rps=10284.0 (overall: 10297.3) avg_msec=4.817 (overall: 4.802)                                                                                                LRANGE_500 (first 500 elements): rps=10039.8 (overall: 10285.6) avg_msec=4.915 (overall: 4.807)                                                                                                LRANGE_500 (first 500 elements): rps=10364.0 (overall: 10289.0) avg_msec=4.785 (overall: 4.806)                                                                                                LRANGE_500 (first 500 elements): rps=10396.0 (overall: 10293.4) avg_msec=4.764 (overall: 4.805)                                                                                                LRANGE_500 (first 500 elements): rps=10272.0 (overall: 10292.6) avg_msec=4.813 (overall: 4.805)                                                                                                LRANGE_500 (first 500 elements): rps=9944.2 (overall: 10279.2) avg_msec=4.966 (overall: 4.811)                                                                                               LRANGE_500 (first 500 elements): rps=10256.0 (overall: 10278.3) avg_msec=4.828 (overall: 4.812)                                                                                                LRANGE_500 (first 500 elements): rps=10128.0 (overall: 10272.9) avg_msec=4.893 (overall: 4.815)                                                                                                LRANGE_500 (first 500 elements): rps=10180.0 (overall: 10269.7) avg_msec=4.867 (overall: 4.816)                                                                                                LRANGE_500 (first 500 elements): rps=10079.7 (overall: 10263.4) avg_msec=4.899 (overall: 4.819)                                                                                                LRANGE_500 (first 500 elements): rps=10624.0 (overall: 10275.0) avg_msec=4.663 (overall: 4.814)                                                                                                LRANGE_500 (first 500 elements): rps=10384.0 (overall: 10278.4) avg_msec=4.769 (overall: 4.812)                                                                                                LRANGE_500 (first 500 elements): rps=10692.0 (overall: 10290.9) avg_msec=4.638 (overall: 4.807)                                                                                                LRANGE_500 (first 500 elements): rps=10059.8 (overall: 10284.1) avg_msec=4.906 (overall: 4.810)                                                                                                LRANGE_500 (first 500 elements): rps=10480.0 (overall: 10289.7) avg_msec=4.723 (overall: 4.807)                                                                                                LRANGE_500 (first 500 elements): rps=10564.0 (overall: 10297.3) avg_msec=4.682 (overall: 4.804)                                                                                                LRANGE_500 (first 500 elements): rps=10290.8 (overall: 10297.1) avg_msec=4.797 (overall: 4.803)                                                                                                LRANGE_500 (first 500 elements): rps=10344.0 (overall: 10298.4) avg_msec=4.791 (overall: 4.803)                                                                                                ====== LRANGE_500 (first 500 elements) ======
+  100000 requests completed in 9.71 seconds
   50 parallel clients
   3 bytes payload
   keep alive: 1
   multi-thread: no
 
 Latency by percentile distribution:
-0.000% <= 0.447 milliseconds (cumulative count 1)
-50.000% <= 4.775 milliseconds (cumulative count 50018)
-75.000% <= 4.911 milliseconds (cumulative count 75645)
-87.500% <= 5.007 milliseconds (cumulative count 87857)
-93.750% <= 5.095 milliseconds (cumulative count 93979)
-96.875% <= 5.183 milliseconds (cumulative count 96923)
-98.438% <= 5.303 milliseconds (cumulative count 98464)
-99.219% <= 5.503 milliseconds (cumulative count 99220)
-99.609% <= 5.799 milliseconds (cumulative count 99614)
-99.805% <= 6.319 milliseconds (cumulative count 99806)
-99.902% <= 6.791 milliseconds (cumulative count 99904)
-99.951% <= 7.079 milliseconds (cumulative count 99953)
-99.976% <= 7.407 milliseconds (cumulative count 99976)
-99.988% <= 7.599 milliseconds (cumulative count 99988)
-99.994% <= 7.759 milliseconds (cumulative count 99995)
-99.997% <= 7.839 milliseconds (cumulative count 99997)
-99.998% <= 7.911 milliseconds (cumulative count 99999)
-99.999% <= 9.063 milliseconds (cumulative count 100000)
-100.000% <= 9.063 milliseconds (cumulative count 100000)
+0.000% <= 0.383 milliseconds (cumulative count 1)
+50.000% <= 4.807 milliseconds (cumulative count 51598)
+75.000% <= 4.935 milliseconds (cumulative count 75421)
+87.500% <= 5.031 milliseconds (cumulative count 87616)
+93.750% <= 5.119 milliseconds (cumulative count 93879)
+96.875% <= 5.215 milliseconds (cumulative count 97028)
+98.438% <= 5.319 milliseconds (cumulative count 98456)
+99.219% <= 5.439 milliseconds (cumulative count 99255)
+99.609% <= 5.567 milliseconds (cumulative count 99612)
+99.805% <= 6.167 milliseconds (cumulative count 99805)
+99.902% <= 7.119 milliseconds (cumulative count 99903)
+99.951% <= 7.735 milliseconds (cumulative count 99952)
+99.976% <= 8.111 milliseconds (cumulative count 99976)
+99.988% <= 8.639 milliseconds (cumulative count 99988)
+99.994% <= 8.935 milliseconds (cumulative count 99994)
+99.997% <= 9.583 milliseconds (cumulative count 99997)
+99.998% <= 9.767 milliseconds (cumulative count 99999)
+99.999% <= 10.071 milliseconds (cumulative count 100000)
+100.000% <= 10.071 milliseconds (cumulative count 100000)
 
 Cumulative distribution of latencies:
 0.000% <= 0.103 milliseconds (cumulative count 0)
-0.004% <= 0.503 milliseconds (cumulative count 4)
-0.005% <= 0.703 milliseconds (cumulative count 5)
+0.001% <= 0.407 milliseconds (cumulative count 1)
+0.003% <= 0.503 milliseconds (cumulative count 3)
+0.004% <= 0.607 milliseconds (cumulative count 4)
+0.005% <= 0.807 milliseconds (cumulative count 5)
+0.007% <= 0.903 milliseconds (cumulative count 7)
+0.009% <= 1.007 milliseconds (cumulative count 9)
+0.010% <= 1.103 milliseconds (cumulative count 10)
+0.012% <= 1.207 milliseconds (cumulative count 12)
+0.013% <= 1.303 milliseconds (cumulative count 13)
+0.015% <= 1.407 milliseconds (cumulative count 15)
+0.019% <= 1.503 milliseconds (cumulative count 19)
+0.021% <= 1.607 milliseconds (cumulative count 21)
+0.023% <= 1.703 milliseconds (cumulative count 23)
+0.025% <= 1.807 milliseconds (cumulative count 25)
+0.027% <= 1.903 milliseconds (cumulative count 27)
+0.031% <= 2.007 milliseconds (cumulative count 31)
+0.039% <= 2.103 milliseconds (cumulative count 39)
+0.138% <= 3.103 milliseconds (cumulative count 138)
+0.328% <= 4.103 milliseconds (cumulative count 328)
+93.071% <= 5.103 milliseconds (cumulative count 93071)
+99.798% <= 6.103 milliseconds (cumulative count 99798)
+99.898% <= 7.103 milliseconds (cumulative count 99898)
+99.975% <= 8.103 milliseconds (cumulative count 99975)
+99.995% <= 9.103 milliseconds (cumulative count 99995)
+100.000% <= 10.103 milliseconds (cumulative count 100000)
+
+Summary:
+  throughput summary: 10302.91 requests per second
+  latency summary (msec):
+          avg       min       p50       p95       p99       max
+        4.802     0.376     4.807     5.151     5.399    10.071
+ LRANGE_600 (first 600 elements): rps=1716.0 (overall: 7944.4) avg_msec=5.881 (overall: 5.881)                                                                                              LRANGE_600 (first 600 elements): rps=8400.0 (overall: 8319.1) avg_msec=5.899 (overall: 5.896)                                                                                              LRANGE_600 (first 600 elements): rps=8541.8 (overall: 8419.8) avg_msec=5.785 (overall: 5.845)                                                                                              LRANGE_600 (first 600 elements): rps=8532.0 (overall: 8454.7) avg_msec=5.806 (overall: 5.833)                                                                                              LRANGE_600 (first 600 elements): rps=8512.0 (overall: 8468.2) avg_msec=5.824 (overall: 5.831)                                                                                              LRANGE_600 (first 600 elements): rps=8545.8 (overall: 8483.2) avg_msec=5.780 (overall: 5.821)                                                                                              LRANGE_600 (first 600 elements): rps=8336.0 (overall: 8459.5) avg_msec=5.942 (overall: 5.840)                                                                                              LRANGE_600 (first 600 elements): rps=8344.0 (overall: 8443.5) avg_msec=5.930 (overall: 5.852)                                                                                              LRANGE_600 (first 600 elements): rps=8400.0 (overall: 8438.2) avg_msec=5.896 (overall: 5.858)                                                                                              LRANGE_600 (first 600 elements): rps=8338.6 (overall: 8427.4) avg_msec=5.920 (overall: 5.864)                                                                                              LRANGE_600 (first 600 elements): rps=8680.0 (overall: 8452.1) avg_msec=5.713 (overall: 5.849)                                                                                              LRANGE_600 (first 600 elements): rps=8784.0 (overall: 8481.7) avg_msec=5.636 (overall: 5.830)                                                                                              LRANGE_600 (first 600 elements): rps=8664.0 (overall: 8496.6) avg_msec=5.721 (overall: 5.820)                                                                                              LRANGE_600 (first 600 elements): rps=8533.9 (overall: 8499.4) avg_msec=5.782 (overall: 5.818)                                                                                              LRANGE_600 (first 600 elements): rps=8664.0 (overall: 8511.0) avg_msec=5.713 (overall: 5.810)                                                                                              LRANGE_600 (first 600 elements): rps=8356.0 (overall: 8500.8) avg_msec=5.935 (overall: 5.818)                                                                                              LRANGE_600 (first 600 elements): rps=8340.0 (overall: 8490.9) avg_msec=5.937 (overall: 5.825)                                                                                              LRANGE_600 (first 600 elements): rps=8191.2 (overall: 8473.4) avg_msec=6.024 (overall: 5.837)                                                                                              LRANGE_600 (first 600 elements): rps=8268.0 (overall: 8462.2) avg_msec=5.996 (overall: 5.845)                                                                                              LRANGE_600 (first 600 elements): rps=8276.0 (overall: 8452.5) avg_msec=5.988 (overall: 5.852)                                                                                              LRANGE_600 (first 600 elements): rps=8015.9 (overall: 8430.8) avg_msec=6.161 (overall: 5.867)                                                                                              LRANGE_600 (first 600 elements): rps=8276.0 (overall: 8423.5) avg_msec=5.993 (overall: 5.873)                                                                                              LRANGE_600 (first 600 elements): rps=8748.0 (overall: 8438.1) avg_msec=5.666 (overall: 5.863)                                                                                              LRANGE_600 (first 600 elements): rps=8768.9 (overall: 8452.4) avg_msec=5.627 (overall: 5.853)                                                                                              LRANGE_600 (first 600 elements): rps=8648.0 (overall: 8460.5) avg_msec=5.711 (overall: 5.847)                                                                                              LRANGE_600 (first 600 elements): rps=8352.0 (overall: 8456.2) avg_msec=5.937 (overall: 5.850)                                                                                              LRANGE_600 (first 600 elements): rps=8500.0 (overall: 8457.9) avg_msec=5.825 (overall: 5.849)                                                                                              LRANGE_600 (first 600 elements): rps=8764.9 (overall: 8469.2) avg_msec=5.631 (overall: 5.841)                                                                                              LRANGE_600 (first 600 elements): rps=8428.0 (overall: 8467.7) avg_msec=5.869 (overall: 5.842)                                                                                              LRANGE_600 (first 600 elements): rps=8324.0 (overall: 8462.8) avg_msec=5.942 (overall: 5.845)                                                                                              LRANGE_600 (first 600 elements): rps=8228.0 (overall: 8455.0) avg_msec=6.025 (overall: 5.851)                                                                                              LRANGE_600 (first 600 elements): rps=8266.9 (overall: 8449.0) avg_msec=5.962 (overall: 5.854)                                                                                              LRANGE_600 (first 600 elements): rps=8168.0 (overall: 8440.3) avg_msec=6.067 (overall: 5.861)                                                                                              LRANGE_600 (first 600 elements): rps=8424.0 (overall: 8439.8) avg_msec=5.882 (overall: 5.862)                                                                                              LRANGE_600 (first 600 elements): rps=8476.0 (overall: 8440.9) avg_msec=5.840 (overall: 5.861)                                                                                              LRANGE_600 (first 600 elements): rps=8576.0 (overall: 8444.7) avg_msec=5.776 (overall: 5.858)                                                                                              LRANGE_600 (first 600 elements): rps=8410.4 (overall: 8443.7) avg_msec=5.868 (overall: 5.859)                                                                                              LRANGE_600 (first 600 elements): rps=8512.0 (overall: 8445.6) avg_msec=5.821 (overall: 5.858)                                                                                              LRANGE_600 (first 600 elements): rps=8408.0 (overall: 8444.6) avg_msec=5.886 (overall: 5.858)                                                                                              LRANGE_600 (first 600 elements): rps=8613.5 (overall: 8448.9) avg_msec=5.722 (overall: 5.855)                                                                                              LRANGE_600 (first 600 elements): rps=8500.0 (overall: 8450.2) avg_msec=5.829 (overall: 5.854)                                                                                              LRANGE_600 (first 600 elements): rps=8372.0 (overall: 8448.3) avg_msec=5.915 (overall: 5.856)                                                                                              LRANGE_600 (first 600 elements): rps=8636.0 (overall: 8452.7) avg_msec=5.724 (overall: 5.852)                                                                                              LRANGE_600 (first 600 elements): rps=8290.8 (overall: 8449.0) avg_msec=5.953 (overall: 5.855)                                                                                              LRANGE_600 (first 600 elements): rps=8296.0 (overall: 8445.5) avg_msec=5.970 (overall: 5.857)                                                                                              LRANGE_600 (first 600 elements): rps=8296.0 (overall: 8442.2) avg_msec=5.972 (overall: 5.860)                                                                                              LRANGE_600 (first 600 elements): rps=8641.4 (overall: 8446.5) avg_msec=5.711 (overall: 5.857)                                                                                              LRANGE_600 (first 600 elements): rps=8552.0 (overall: 8448.8) avg_msec=5.792 (overall: 5.855)                                                                                              ====== LRANGE_600 (first 600 elements) ======
+  100000 requests completed in 11.83 seconds
+  50 parallel clients
+  3 bytes payload
+  keep alive: 1
+  multi-thread: no
+
+Latency by percentile distribution:
+0.000% <= 0.335 milliseconds (cumulative count 1)
+50.000% <= 5.847 milliseconds (cumulative count 51066)
+75.000% <= 6.023 milliseconds (cumulative count 75672)
+87.500% <= 6.159 milliseconds (cumulative count 87609)
+93.750% <= 6.295 milliseconds (cumulative count 93950)
+96.875% <= 6.431 milliseconds (cumulative count 96941)
+98.438% <= 6.575 milliseconds (cumulative count 98500)
+99.219% <= 6.727 milliseconds (cumulative count 99230)
+99.609% <= 6.943 milliseconds (cumulative count 99617)
+99.805% <= 7.231 milliseconds (cumulative count 99806)
+99.902% <= 8.039 milliseconds (cumulative count 99903)
+99.951% <= 8.935 milliseconds (cumulative count 99952)
+99.976% <= 9.519 milliseconds (cumulative count 99976)
+99.988% <= 9.935 milliseconds (cumulative count 99988)
+99.994% <= 10.079 milliseconds (cumulative count 99994)
+99.997% <= 10.311 milliseconds (cumulative count 99997)
+99.998% <= 10.511 milliseconds (cumulative count 99999)
+99.999% <= 10.687 milliseconds (cumulative count 100000)
+100.000% <= 10.687 milliseconds (cumulative count 100000)
+
+Cumulative distribution of latencies:
+0.000% <= 0.103 milliseconds (cumulative count 0)
+0.001% <= 0.407 milliseconds (cumulative count 1)
+0.002% <= 0.503 milliseconds (cumulative count 2)
+0.003% <= 0.607 milliseconds (cumulative count 3)
+0.004% <= 0.807 milliseconds (cumulative count 4)
 0.006% <= 0.903 milliseconds (cumulative count 6)
-0.007% <= 1.007 milliseconds (cumulative count 7)
-0.009% <= 1.103 milliseconds (cumulative count 9)
-0.010% <= 1.207 milliseconds (cumulative count 10)
-0.012% <= 1.303 milliseconds (cumulative count 12)
-0.013% <= 1.503 milliseconds (cumulative count 13)
-0.014% <= 1.703 milliseconds (cumulative count 14)
-0.016% <= 1.807 milliseconds (cumulative count 16)
-0.020% <= 1.903 milliseconds (cumulative count 20)
-0.023% <= 2.007 milliseconds (cumulative count 23)
-0.030% <= 2.103 milliseconds (cumulative count 30)
-0.165% <= 3.103 milliseconds (cumulative count 165)
-0.436% <= 4.103 milliseconds (cumulative count 436)
-94.340% <= 5.103 milliseconds (cumulative count 94340)
-99.766% <= 6.103 milliseconds (cumulative count 99766)
-99.956% <= 7.103 milliseconds (cumulative count 99956)
-99.999% <= 8.103 milliseconds (cumulative count 99999)
-100.000% <= 9.103 milliseconds (cumulative count 100000)
+0.008% <= 1.103 milliseconds (cumulative count 8)
+0.011% <= 1.303 milliseconds (cumulative count 11)
+0.012% <= 1.503 milliseconds (cumulative count 12)
+0.014% <= 1.807 milliseconds (cumulative count 14)
+0.015% <= 1.903 milliseconds (cumulative count 15)
+0.017% <= 2.007 milliseconds (cumulative count 17)
+0.071% <= 3.103 milliseconds (cumulative count 71)
+0.122% <= 4.103 milliseconds (cumulative count 122)
+0.345% <= 5.103 milliseconds (cumulative count 345)
+83.444% <= 6.103 milliseconds (cumulative count 83444)
+99.749% <= 7.103 milliseconds (cumulative count 99749)
+99.907% <= 8.103 milliseconds (cumulative count 99907)
+99.960% <= 9.103 milliseconds (cumulative count 99960)
+99.994% <= 10.103 milliseconds (cumulative count 99994)
+100.000% <= 11.103 milliseconds (cumulative count 100000)
 
 Summary:
-  throughput summary: 10351.97 requests per second
+  throughput summary: 8451.66 requests per second
   latency summary (msec):
           avg       min       p50       p95       p99       max
-        4.778     0.440     4.775     5.119     5.415     9.063
- LRANGE_600 (first 600 elements): rps=552.0 (overall: 6900.0) avg_msec=6.122 (overall: 6.122)                                                                                             LRANGE_600 (first 600 elements): rps=8484.0 (overall: 8366.7) avg_msec=5.844 (overall: 5.861)                                                                                              LRANGE_600 (first 600 elements): rps=8294.8 (overall: 8332.1) avg_msec=5.957 (overall: 5.907)                                                                                              LRANGE_600 (first 600 elements): rps=8592.0 (overall: 8416.3) avg_msec=5.775 (overall: 5.863)                                                                                              LRANGE_600 (first 600 elements): rps=8440.0 (overall: 8422.1) avg_msec=5.866 (overall: 5.864)                                                                                              LRANGE_600 (first 600 elements): rps=8533.9 (overall: 8444.2) avg_msec=5.779 (overall: 5.847)                                                                                              LRANGE_600 (first 600 elements): rps=8532.0 (overall: 8458.6) avg_msec=5.814 (overall: 5.842)                                                                                              LRANGE_600 (first 600 elements): rps=8472.0 (overall: 8460.5) avg_msec=5.852 (overall: 5.843)                                                                                              LRANGE_600 (first 600 elements): rps=8672.0 (overall: 8486.6) avg_msec=5.716 (overall: 5.827)                                                                                              LRANGE_600 (first 600 elements): rps=8529.9 (overall: 8491.4) avg_msec=5.782 (overall: 5.822)                                                                                              LRANGE_600 (first 600 elements): rps=8712.0 (overall: 8513.3) avg_msec=5.697 (overall: 5.809)                                                                                              LRANGE_600 (first 600 elements): rps=8720.0 (overall: 8531.9) avg_msec=5.680 (overall: 5.797)                                                                                              LRANGE_600 (first 600 elements): rps=8576.0 (overall: 8535.6) avg_msec=5.776 (overall: 5.796)                                                                                              LRANGE_600 (first 600 elements): rps=8609.6 (overall: 8541.2) avg_msec=5.746 (overall: 5.792)                                                                                              LRANGE_600 (first 600 elements): rps=8776.0 (overall: 8557.9) avg_msec=5.632 (overall: 5.780)                                                                                              LRANGE_600 (first 600 elements): rps=8688.0 (overall: 8566.5) avg_msec=5.696 (overall: 5.774)                                                                                              LRANGE_600 (first 600 elements): rps=8637.5 (overall: 8570.9) avg_msec=5.715 (overall: 5.771)                                                                                              LRANGE_600 (first 600 elements): rps=8440.0 (overall: 8563.3) avg_msec=5.867 (overall: 5.776)                                                                                              LRANGE_600 (first 600 elements): rps=8560.0 (overall: 8563.1) avg_msec=5.787 (overall: 5.777)                                                                                              LRANGE_600 (first 600 elements): rps=8772.0 (overall: 8574.0) avg_msec=5.656 (overall: 5.770)                                                                                              LRANGE_600 (first 600 elements): rps=8390.4 (overall: 8564.9) avg_msec=5.883 (overall: 5.776)                                                                                              LRANGE_600 (first 600 elements): rps=8752.0 (overall: 8573.7) avg_msec=5.655 (overall: 5.770)                                                                                              LRANGE_600 (first 600 elements): rps=8828.0 (overall: 8585.2) avg_msec=5.619 (overall: 5.763)                                                                                              LRANGE_600 (first 600 elements): rps=8656.0 (overall: 8588.3) avg_msec=5.727 (overall: 5.761)                                                                                              LRANGE_600 (first 600 elements): rps=8692.0 (overall: 8592.6) avg_msec=5.696 (overall: 5.759)                                                                                              LRANGE_600 (first 600 elements): rps=8709.2 (overall: 8597.3) avg_msec=5.668 (overall: 5.755)                                                                                              LRANGE_600 (first 600 elements): rps=8480.0 (overall: 8592.8) avg_msec=5.854 (overall: 5.759)                                                                                              LRANGE_600 (first 600 elements): rps=8764.0 (overall: 8599.1) avg_msec=5.643 (overall: 5.754)                                                                                              LRANGE_600 (first 600 elements): rps=8685.3 (overall: 8602.2) avg_msec=5.689 (overall: 5.752)                                                                                              LRANGE_600 (first 600 elements): rps=8584.0 (overall: 8601.5) avg_msec=5.762 (overall: 5.752)                                                                                              LRANGE_600 (first 600 elements): rps=8496.0 (overall: 8598.0) avg_msec=5.837 (overall: 5.755)                                                                                              LRANGE_600 (first 600 elements): rps=8356.0 (overall: 8590.3) avg_msec=5.924 (overall: 5.760)                                                                                              LRANGE_600 (first 600 elements): rps=8378.5 (overall: 8583.6) avg_msec=5.903 (overall: 5.765)                                                                                              LRANGE_600 (first 600 elements): rps=8676.0 (overall: 8586.4) avg_msec=5.712 (overall: 5.763)                                                                                              LRANGE_600 (first 600 elements): rps=8624.0 (overall: 8587.5) avg_msec=5.749 (overall: 5.763)                                                                                              LRANGE_600 (first 600 elements): rps=8864.0 (overall: 8595.4) avg_msec=5.598 (overall: 5.758)                                                                                              LRANGE_600 (first 600 elements): rps=8717.1 (overall: 8598.8) avg_msec=5.649 (overall: 5.755)                                                                                              LRANGE_600 (first 600 elements): rps=8580.0 (overall: 8598.3) avg_msec=5.780 (overall: 5.756)                                                                                              LRANGE_600 (first 600 elements): rps=8704.0 (overall: 8601.0) avg_msec=5.701 (overall: 5.754)                                                                                              LRANGE_600 (first 600 elements): rps=8796.0 (overall: 8606.0) avg_msec=5.625 (overall: 5.751)                                                                                              LRANGE_600 (first 600 elements): rps=8581.7 (overall: 8605.4) avg_msec=5.750 (overall: 5.751)                                                                                              LRANGE_600 (first 600 elements): rps=8428.0 (overall: 8601.1) avg_msec=5.882 (overall: 5.754)                                                                                              LRANGE_600 (first 600 elements): rps=8500.0 (overall: 8598.7) avg_msec=5.843 (overall: 5.756)                                                                                              LRANGE_600 (first 600 elements): rps=8529.9 (overall: 8597.1) avg_msec=5.777 (overall: 5.756)                                                                                              LRANGE_600 (first 600 elements): rps=8700.0 (overall: 8599.4) avg_msec=5.696 (overall: 5.755)                                                                                              LRANGE_600 (first 600 elements): rps=8628.0 (overall: 8600.1) avg_msec=5.747 (overall: 5.755)                                                                                              LRANGE_600 (first 600 elements): rps=8512.0 (overall: 8598.2) avg_msec=5.828 (overall: 5.756)                                                                                              ====== LRANGE_600 (first 600 elements) ======
-  100000 requests completed in 11.62 seconds
-  50 parallel clients
-  3 bytes payload
-  keep alive: 1
-  multi-thread: no
-
-Latency by percentile distribution:
-0.000% <= 0.423 milliseconds (cumulative count 1)
-50.000% <= 5.767 milliseconds (cumulative count 51201)
-75.000% <= 5.927 milliseconds (cumulative count 75479)
-87.500% <= 6.047 milliseconds (cumulative count 87989)
-93.750% <= 6.143 milliseconds (cumulative count 93753)
-96.875% <= 6.255 milliseconds (cumulative count 96992)
-98.438% <= 6.375 milliseconds (cumulative count 98481)
-99.219% <= 6.519 milliseconds (cumulative count 99241)
-99.609% <= 6.679 milliseconds (cumulative count 99619)
-99.805% <= 7.175 milliseconds (cumulative count 99806)
-99.902% <= 8.399 milliseconds (cumulative count 99903)
-99.951% <= 8.895 milliseconds (cumulative count 99953)
-99.976% <= 9.231 milliseconds (cumulative count 99978)
-99.988% <= 9.399 milliseconds (cumulative count 99988)
-99.994% <= 9.527 milliseconds (cumulative count 99995)
-99.997% <= 9.567 milliseconds (cumulative count 99997)
-99.998% <= 9.815 milliseconds (cumulative count 99999)
-99.999% <= 11.887 milliseconds (cumulative count 100000)
-100.000% <= 11.887 milliseconds (cumulative count 100000)
-
-Cumulative distribution of latencies:
-0.000% <= 0.103 milliseconds (cumulative count 0)
-0.001% <= 0.503 milliseconds (cumulative count 1)
-0.002% <= 0.607 milliseconds (cumulative count 2)
-0.003% <= 0.703 milliseconds (cumulative count 3)
-0.006% <= 0.807 milliseconds (cumulative count 6)
-0.007% <= 1.103 milliseconds (cumulative count 7)
-0.008% <= 1.303 milliseconds (cumulative count 8)
-0.010% <= 1.503 milliseconds (cumulative count 10)
-0.013% <= 1.607 milliseconds (cumulative count 13)
-0.015% <= 1.807 milliseconds (cumulative count 15)
-0.017% <= 1.903 milliseconds (cumulative count 17)
-0.018% <= 2.007 milliseconds (cumulative count 18)
-0.020% <= 2.103 milliseconds (cumulative count 20)
-0.085% <= 3.103 milliseconds (cumulative count 85)
-0.174% <= 4.103 milliseconds (cumulative count 174)
-0.931% <= 5.103 milliseconds (cumulative count 931)
-91.758% <= 6.103 milliseconds (cumulative count 91758)
-99.800% <= 7.103 milliseconds (cumulative count 99800)
-99.885% <= 8.103 milliseconds (cumulative count 99885)
-99.968% <= 9.103 milliseconds (cumulative count 99968)
-99.999% <= 10.103 milliseconds (cumulative count 99999)
-100.000% <= 12.103 milliseconds (cumulative count 100000)
-
-Summary:
-  throughput summary: 8603.63 requests per second
-  latency summary (msec):
-          avg       min       p50       p95       p99       max
-        5.753     0.416     5.767     6.183     6.455    11.887
+        5.854     0.328     5.847     6.335     6.663    10.687
 
