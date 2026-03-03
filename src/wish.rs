@@ -72,7 +72,13 @@ pub enum Command {
     EXPIRE,
     TTL,
     SUBSCRIBE,
-    PUBLISH
+    PUBLISH,
+    MSET,
+    MGET,
+    SADD,
+    SREM,
+    SISMEMBER,
+    HGETALL
 }
 
 pub enum Sacrilege {

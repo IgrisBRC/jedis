@@ -27,14 +27,20 @@ mod lpush;
 mod lrange;
 mod lrem;
 mod lset;
+mod mget;
+mod mset;
 mod ping;
+mod publish;
 mod rpop;
 mod rpush;
+mod sadd;
 mod set;
+mod sismember;
+mod srem;
 mod strlen;
 mod subscribe;
 mod ttl;
-mod publish;
+mod hgetall;
 
 pub struct Gift {
     pub token: mio::Token,
@@ -44,7 +50,7 @@ pub struct Gift {
 pub enum Decree {
     Welcome(Token, mio::net::TcpStream),
     Deliver(Gift),
-    Broadcast(Token, Vec<u8>, Vec<u8>, Vec<Token>)
+    Broadcast(Token, Vec<u8>, Vec<u8>, Vec<Token>),
 }
 
 pub fn grant(
@@ -111,6 +117,18 @@ pub fn grant(
         subscribe::subscribe(terms, temple, tx, token)?
     } else if cmd.eq_ignore_ascii_case(b"PUBLISH") {
         publish::publish(terms, temple, tx, token)?
+    } else if cmd.eq_ignore_ascii_case(b"MSET") {
+        mset::mset(terms, temple, tx, token)?
+    } else if cmd.eq_ignore_ascii_case(b"MGET") {
+        mget::mget(terms, temple, tx, token)?
+    } else if cmd.eq_ignore_ascii_case(b"SADD") {
+        sadd::sadd(terms, temple, tx, token)?
+    } else if cmd.eq_ignore_ascii_case(b"SREM") {
+        srem::srem(terms, temple, tx, token)?
+    } else if cmd.eq_ignore_ascii_case(b"SISMEMBER") {
+        sismember::sismember(terms, temple, tx, token)?
+    } else if cmd.eq_ignore_ascii_case(b"HGETALL") {
+        hgetall::hgetall(terms, temple, tx, token)?
     } else if cmd.eq_ignore_ascii_case(b"COMMAND") || cmd.eq_ignore_ascii_case(b"CONFIG") {
         if tx
             .send(Decree::Deliver(Gift {

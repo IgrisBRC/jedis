@@ -36,7 +36,7 @@ fn main() {
 
     let mut pilgrim_counter = 1;
 
-    let ingress_choir = Choir::new(5);
+    let ingress_choir = Choir::new(3);
 
     let temple = Temple::new("IgrisDB");
 

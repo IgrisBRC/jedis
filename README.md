@@ -20,14 +20,19 @@ Note: Every command is supposed to work just like how it would in Redis.
 | **LINDEX** | List | `LINDEX key index` | Retrieves one element at given index in a list |
 | **LLEN** | List | `LLEN key` | Retrieves number of elements in a list|
 | **LSET** | List | `LSET key index element` | Replaces an element at a specific index |
-| **HSET / HMGET** | Hash | `HSET key field val...` | Sets or gets fields within a hash map |
+| **HSET** | Hash | `HSET key field val [val ...]` | Sets fields within a hash map |
+| **HMGET** | Hash | `HMGET key field [field ...]` | Gets fields within a hash map |
 | **HGET** | Hash | `HGET key field` | Gets fields within a hash map |
 | **HDEL** | Hash | `HDEL key field...` | Removes one or more fields from a hashmap |
 | **HEXISTS** | Hash | `HEXISTS key field` | Checks for one field in a hashmap |
 | **HLEN** | Hash | `HLEN key` | Retrieves the hashmap's size |
+| **HGETALL** | Hash | `HGETALL key` | Returns all field value pairs in a hashmap at key |
+| **SADD** | Set | `SADD key val [val ...]` | Addes value to a (new) set at key |
+| **SREM** | Set | `SREM key val [val ...]` | Removes value from a set at key |
+| **SISMEMBER** | Set | `SISMEMBER key val` | Checks if value is in a set situated at key |
 | **EXISTS** | Generic | `EXISTS key [key...]` | Checks for the presence of keys |
 | **DEL** | Generic | `DEL key [key...]` | Removes keys of any data type |
-| **TTL** | Generic | `TTL key` | Returns the expiry of the entry at key |
+| **TTL** | Generic | `TTL key` | Returns the expiry of the entry at key|
 | **EXPIRE** | Generic | `EXPIRE key expiry` | Sets the expiry of the entry at key |
 | **SUBSCRIBE** | Broadcast | `SUBSCRIBE event` | Subscribes you to event |
 | **PUBLISH** | Broadcast | `PUBLISH event message` | Sends a message to all the clients subscribed to event |
@@ -62,3 +67,10 @@ Match through all the possible errors in egress.rs and give appropriate error me
 
 Restrict the number of arguments accepted for all the commands.
 
+Subscriber mod
+
+Metacommands
+
+Persistance
+
+cli options

@@ -1,0 +1,39 @@
+use mio::Token;
+
+use crate::{
+    temple::Temple,
+    wish::{
+        Command, Response, Sacrilege, Sin,
+        grant::{Decree, Gift},
+    },
+};
+use std::sync::mpsc::Sender;
+
+pub fn mset(
+    terms: Vec<Vec<u8>>,
+    temple: &mut Temple,
+    tx: Sender<Decree>,
+    token: Token,
+) -> Result<(), Sin> {
+    let terms_len = terms.len();
+
+    if terms_len < 3 || terms_len % 2 == 0 {
+        if tx
+            .send(Decree::Deliver(Gift {
+                token,
+                response: Response::Error(Sacrilege::IncorrectNumberOfArguments(Command::MSET)),
+            }))
+            .is_err()
+        {
+            eprintln!("angel panicked");
+        };
+        return Ok(());
+    }
+
+    let mut terms_iter = terms.into_iter();
+    terms_iter.next();
+
+    temple.mset(terms_iter, tx, token);
+
+    Ok(())
+}

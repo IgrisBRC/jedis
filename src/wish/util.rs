@@ -1,5 +1,3 @@
-use std::{ascii::AsciiExt, string::ParseError};
-
 use crate::wish::Sin;
 
 pub fn find_crlf(buffer: &[u8]) -> Option<usize> {
@@ -32,7 +30,6 @@ pub fn bytes_to_i32(bytes: &[u8]) -> Result<i32, Sin> {
     Ok(if is_neg { -result } else { result })
 }
 
-
 pub fn bytes_to_u64(bytes: &[u8]) -> Result<u64, Sin> {
     if bytes.is_empty() {
         return Err(Sin::ParseError);
@@ -56,7 +53,6 @@ pub fn bytes_to_u64(bytes: &[u8]) -> Result<u64, Sin> {
 
     Ok(result)
 }
-
 
 pub fn bytes_to_i64(bytes: &[u8]) -> Result<i64, Sin> {
     if bytes.is_empty() {
@@ -83,7 +79,6 @@ pub fn bytes_to_i64(bytes: &[u8]) -> Result<i64, Sin> {
 
     Ok(if is_neg { -result } else { result })
 }
-
 
 pub fn bytes_to_usize(bytes: &[u8]) -> Result<usize, Sin> {
     if bytes.is_empty() {

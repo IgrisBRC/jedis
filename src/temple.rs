@@ -1,6 +1,7 @@
 use std::collections::hash_map::Entry;
 use std::collections::{HashSet, VecDeque};
 use std::sync::mpsc::Sender;
+use std::vec::IntoIter;
 use std::{collections::HashMap, time::SystemTime};
 
 use mio::Token;
@@ -648,6 +649,135 @@ impl Soul {
         }
     }
 
+    pub fn mset(&mut self, mut terms_iter: IntoIter<Vec<u8>>) {
+        while let (Some(key), Some(value)) = (terms_iter.next(), terms_iter.next()) {
+            self.0.insert(key, (Value::String(value), None));
+        }
+    }
+
+    pub fn mget(
+        &self,
+        mut terms_iter: IntoIter<Vec<u8>>,
+        now: SystemTime,
+    ) -> Option<Vec<Option<Vec<u8>>>> {
+        let mut result = Vec::with_capacity(terms_iter.len());
+
+        while let Some(key) = terms_iter.next() {
+            match self.get_valid_value(&key, now) {
+                Some(Value::String(value)) => {
+                    result.push(Some(value.clone()));
+                }
+                _ => result.push(None),
+            }
+        }
+
+        Some(result)
+    }
+
+    pub fn sadd(
+        &mut self,
+        key: Vec<u8>,
+        values: Vec<Vec<u8>>,
+        now: SystemTime,
+    ) -> Result<usize, Sacrilege> {
+        match self.get_mut_valid_value(&key, now) {
+            Some(Value::Set(set)) => {
+                let mut count = 0;
+
+                for value in values {
+                    if set.insert(value) {
+                        count += 1;
+                    }
+                }
+
+                Ok(count)
+            }
+            Some(_) => Err(Sacrilege::IncorrectUsage(Command::SADD)),
+            None => {
+                let mut set = HashSet::new();
+                let mut count = 0;
+
+                for value in values {
+                    if set.insert(value) {
+                        count += 1;
+                    }
+                }
+
+                self.0.insert(key, (Value::Set(set), None));
+
+                Ok(count)
+            }
+        }
+    }
+
+    pub fn srem(
+        &mut self,
+        key: Vec<u8>,
+        values: Vec<Vec<u8>>,
+        now: SystemTime,
+    ) -> Result<usize, Sacrilege> {
+        match self.get_mut_valid_value(&key, now) {
+            Some(Value::Set(set)) => {
+                let mut count = 0;
+
+                for value in values {
+                    if set.remove(&value) {
+                        count += 1;
+                    }
+                }
+
+                if set.is_empty() {
+                    self.0.remove(&key);
+                }
+
+                Ok(count)
+            }
+            Some(_) => Err(Sacrilege::IncorrectUsage(Command::SREM)),
+            None => Ok(0),
+        }
+    }
+
+    pub fn sismember(
+        &mut self,
+        key: Vec<u8>,
+        value: Vec<u8>,
+        now: SystemTime,
+    ) -> Result<usize, Sacrilege> {
+        match self.get_valid_value(&key, now) {
+            Some(Value::Set(set)) => {
+                if set.contains(&value) {
+                    return Ok(1);
+                } else {
+                    return Ok(0);
+                }
+            }
+            Some(_) => Err(Sacrilege::IncorrectUsage(Command::SREM)),
+            None => Ok(0),
+        }
+    }
+
+    pub fn hgetall(
+        &mut self,
+        key: Vec<u8>,
+        now: SystemTime,
+    ) -> Result<Option<Vec<Option<Vec<u8>>>>, Sacrilege> {
+
+        match self.get_valid_value(&key, now) {
+            Some(Value::Hash(map)) => {
+                let mut result = Vec::with_capacity(map.len() * 2);
+
+                for (field, value) in map {
+                    result.push(Some(field.clone()));
+                    result.push(Some(value.clone()));
+                }
+
+                Ok(Some(result))
+            }
+            Some(_) => Err(Sacrilege::IncorrectUsage(Command::HGETALL)),
+            None => Ok(None),
+        }
+    }
+
     fn get_valid_value(&self, key: &Vec<u8>, now: SystemTime) -> Option<&Value> {
         match self.0.get(key) {
             Some((value, Some(expiry))) => {
@@ -954,6 +1084,44 @@ pub enum Wish {
         message: Vec<u8>,
         token: Token,
         tx: Sender<Decree>,
+    },
+    Mset {
+        terms_iter: IntoIter<Vec<u8>>,
+        token: Token,
+        tx: Sender<Decree>,
+    },
+    Mget {
+        terms_iter: IntoIter<Vec<u8>>,
+        token: Token,
+        tx: Sender<Decree>,
+        time: SystemTime,
+    },
+    Sadd {
+        key: Vec<u8>,
+        token: Token,
+        values: Vec<Vec<u8>>,
+        tx: Sender<Decree>,
+        time: SystemTime,
+    },
+    Srem {
+        key: Vec<u8>,
+        token: Token,
+        values: Vec<Vec<u8>>,
+        tx: Sender<Decree>,
+        time: SystemTime,
+    },
+    Sismember {
+        key: Vec<u8>,
+        token: Token,
+        value: Vec<u8>,
+        tx: Sender<Decree>,
+        time: SystemTime,
+    },
+    Hgetall {
+        key: Vec<u8>,
+        token: Token,
+        tx: Sender<Decree>,
+        time: SystemTime,
     },
 }
 
@@ -1749,6 +1917,160 @@ impl<'a> Temple<'a> {
                                 eprintln!("angel panicked");
                             }
                         }
+                        Wish::Mset {
+                            terms_iter,
+                            token,
+                            tx,
+                        } => {
+                            soul.mset(terms_iter);
+
+                            if tx
+                                .send(Decree::Deliver(Gift {
+                                    token,
+                                    response: Response::Info(InfoType::Ok),
+                                }))
+                                .is_err()
+                            {
+                                eprintln!("angel panicked");
+                            }
+                        }
+                        Wish::Mget {
+                            terms_iter,
+                            token,
+                            tx,
+                            time,
+                        } => {
+                            let bulk_string_array = soul.mget(terms_iter, time);
+
+                            if tx
+                                .send(Decree::Deliver(Gift {
+                                    token,
+                                    response: Response::BulkStringArray(bulk_string_array),
+                                }))
+                                .is_err()
+                            {
+                                eprintln!("angel panicked");
+                            }
+                        }
+                        Wish::Sadd {
+                            key,
+                            token,
+                            values,
+                            tx,
+                            time,
+                        } => match soul.sadd(key, values, time) {
+                            Ok(amount) => {
+                                if tx
+                                    .send(Decree::Deliver(Gift {
+                                        token,
+                                        response: Response::Length(amount),
+                                    }))
+                                    .is_err()
+                                {
+                                    eprintln!("angel panicked");
+                                }
+                            }
+                            Err(sacrilege) => {
+                                if tx
+                                    .send(Decree::Deliver(Gift {
+                                        token,
+                                        response: Response::Error(sacrilege),
+                                    }))
+                                    .is_err()
+                                {
+                                    eprintln!("angel panicked");
+                                }
+                            }
+                        },
+                        Wish::Srem {
+                            key,
+                            token,
+                            values,
+                            tx,
+                            time,
+                        } => match soul.srem(key, values, time) {
+                            Ok(amount) => {
+                                if tx
+                                    .send(Decree::Deliver(Gift {
+                                        token,
+                                        response: Response::Length(amount),
+                                    }))
+                                    .is_err()
+                                {
+                                    eprintln!("angel panicked");
+                                }
+                            }
+                            Err(sacrilege) => {
+                                if tx
+                                    .send(Decree::Deliver(Gift {
+                                        token,
+                                        response: Response::Error(sacrilege),
+                                    }))
+                                    .is_err()
+                                {
+                                    eprintln!("angel panicked");
+                                }
+                            }
+                        },
+                        Wish::Sismember {
+                            key,
+                            token,
+                            value,
+                            tx,
+                            time,
+                        } => match soul.sismember(key, value, time) {
+                            Ok(amount) => {
+                                if tx
+                                    .send(Decree::Deliver(Gift {
+                                        token,
+                                        response: Response::Length(amount),
+                                    }))
+                                    .is_err()
+                                {
+                                    eprintln!("angel panicked");
+                                }
+                            }
+                            Err(sacrilege) => {
+                                if tx
+                                    .send(Decree::Deliver(Gift {
+                                        token,
+                                        response: Response::Error(sacrilege),
+                                    }))
+                                    .is_err()
+                                {
+                                    eprintln!("angel panicked");
+                                }
+                            }
+                        },
+                        Wish::Hgetall {
+                            key,
+                            token,
+                            tx,
+                            time,
+                        } => match soul.hgetall(key, time) {
+                            Ok(bulk_string_array) => {
+                                if tx
+                                    .send(Decree::Deliver(Gift {
+                                        token,
+                                        response: Response::BulkStringArray(bulk_string_array),
+                                    }))
+                                    .is_err()
+                                {
+                                    eprintln!("angel panicked");
+                                }
+                            }
+                            Err(sacrilege) => {
+                                if tx
+                                    .send(Decree::Deliver(Gift {
+                                        token,
+                                        response: Response::Error(sacrilege),
+                                    }))
+                                    .is_err()
+                                {
+                                    eprintln!("angel panicked");
+                                }
+                            }
+                        },
                     },
                     Err(e) => {
                         eprintln!("GodThread: {}", e);
@@ -2312,6 +2634,125 @@ impl<'a> Temple<'a> {
                 message,
                 token,
                 tx,
+            })
+            .is_err()
+        {
+            eprintln!("angel panicked");
+        }
+    }
+
+    pub fn mset(&self, terms_iter: IntoIter<Vec<u8>>, tx: Sender<Decree>, token: Token) {
+        if self
+            .tx
+            .send(Wish::Mset {
+                terms_iter,
+                token,
+                tx,
+            })
+            .is_err()
+        {
+            eprintln!("angel panicked");
+        }
+    }
+
+    pub fn mget(
+        &self,
+        terms_iter: IntoIter<Vec<u8>>,
+        tx: Sender<Decree>,
+        token: Token,
+        time: SystemTime,
+    ) {
+        if self
+            .tx
+            .send(Wish::Mget {
+                terms_iter,
+                token,
+                tx,
+                time,
+            })
+            .is_err()
+        {
+            eprintln!("angel panicked");
+        }
+    }
+
+    pub fn sadd(
+        &self,
+        tx: Sender<Decree>,
+        key: Vec<u8>,
+        values: Vec<Vec<u8>>,
+        token: Token,
+        time: SystemTime,
+    ) {
+        if self
+            .tx
+            .send(Wish::Sadd {
+                key,
+                token,
+                values,
+                tx,
+                time,
+            })
+            .is_err()
+        {
+            eprintln!("angel panicked");
+        }
+    }
+
+    pub fn srem(
+        &self,
+        tx: Sender<Decree>,
+        key: Vec<u8>,
+        values: Vec<Vec<u8>>,
+        token: Token,
+        time: SystemTime,
+    ) {
+        if self
+            .tx
+            .send(Wish::Sadd {
+                key,
+                token,
+                values,
+                tx,
+                time,
+            })
+            .is_err()
+        {
+            eprintln!("angel panicked");
+        }
+    }
+
+    pub fn sismember(
+        &self,
+        tx: Sender<Decree>,
+        key: Vec<u8>,
+        value: Vec<u8>,
+        token: Token,
+        time: SystemTime,
+    ) {
+        if self
+            .tx
+            .send(Wish::Sismember {
+                key,
+                token,
+                value,
+                tx,
+                time,
+            })
+            .is_err()
+        {
+            eprintln!("angel panicked");
+        }
+    }
+
+    pub fn hgetall(&self, key: Vec<u8>, tx: Sender<Decree>, token: Token, time: SystemTime) {
+        if self
+            .tx
+            .send(Wish::Hgetall {
+                key,
+                token,
+                tx,
+                time,
             })
             .is_err()
         {
