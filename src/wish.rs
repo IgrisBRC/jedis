@@ -15,8 +15,8 @@ pub enum Phase {
 
 pub struct Virtue {
     backlog: Vec<u8>,
-    read_idx: usize,  
-    write_idx: usize, 
+    read_idx: usize,
+    write_idx: usize,
     terms: Vec<Vec<u8>>,
     expected_terms: usize,
     phase: Phase,
@@ -79,7 +79,7 @@ pub enum Command {
     SREM,
     SISMEMBER,
     HGETALL,
-    SMEMBERS
+    SMEMBERS,
 }
 
 pub enum Sacrilege {
@@ -101,7 +101,8 @@ pub enum Response {
     Amount(u32),
     Number(i64),
     Length(usize),
-    NumberOfSubscribedChannels(Vec<u8>, usize)
+    NumberOfSubscribedChannels(Vec<u8>, usize),
+    UnsubscribedChannels(Option<Vec<(Vec<u8>, usize)>>),
 }
 
 pub struct Pilgrim {
@@ -145,7 +146,7 @@ pub fn wish(pilgrim: &mut Pilgrim, mut temple: Temple, token: Token) -> Result<(
             Phase::Idle => {
                 if active_window[0] == b'*' {
                     virtue.phase = Phase::AwaitingTermCount;
-                    virtue.read_idx += 1; 
+                    virtue.read_idx += 1;
                 } else {
                     return Err(Sin::Blasphemy);
                 }

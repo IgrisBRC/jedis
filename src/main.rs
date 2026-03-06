@@ -70,11 +70,11 @@ fn main() {
                     let mut response = b"*3\r\n$7\r\nmessage\r\n$".to_vec();
                     response.extend_from_slice(itoa_buf.format(event.len()).as_bytes());
                     response.extend_from_slice(b"\r\n");
-                    response.append(&mut event);
+                    response.extend_from_slice(&mut event);
                     response.extend_from_slice(b"\r\n$");
                     response.extend_from_slice(itoa_buf.format(message.len()).as_bytes());
                     response.extend_from_slice(b"\r\n");
-                    response.append(&mut message);
+                    response.extend_from_slice(&mut message);
                     response.extend_from_slice(b"\r\n");
 
                     for client in clients {

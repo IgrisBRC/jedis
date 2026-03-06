@@ -37,11 +37,12 @@ mod rpush;
 mod sadd;
 mod set;
 mod sismember;
+mod smembers;
 mod srem;
 mod strlen;
 mod subscribe;
 mod ttl;
-mod smembers;
+mod unsubscribe;
 
 pub struct Gift {
     pub token: mio::Token,
@@ -132,6 +133,8 @@ pub fn grant(
         hgetall::hgetall(terms, temple, tx, token)?
     } else if cmd.eq_ignore_ascii_case(b"SMEMBERS") {
         smembers::smembers(terms, temple, tx, token)?
+    } else if cmd.eq_ignore_ascii_case(b"UNSUBSCRIBE") {
+        unsubscribe::unsubscribe(terms, temple, tx, token)?
     } else if cmd.eq_ignore_ascii_case(b"COMMAND") || cmd.eq_ignore_ascii_case(b"CONFIG") {
         if tx
             .send(Decree::Deliver(Gift {

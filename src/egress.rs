@@ -76,6 +76,24 @@ pub fn egress(stream: &mut TcpStream, gift: Gift, response: &mut Vec<u8>) -> Res
             response.extend_from_slice(itoa_buf.format(number).as_bytes());
             response.extend_from_slice(b"\r\n");
         }
+        Response::UnsubscribedChannels(unsubscribed_channels) => match unsubscribed_channels {
+            Some(unsubscribed_channels) => {
+                for (unsubscribed_channel, count) in unsubscribed_channels {
+                    response.extend_from_slice(b"*3\r\n$11\r\nunsubscribe\r\n$");
+                    response
+                        .extend_from_slice(itoa_buf.format(unsubscribed_channel.len()).as_bytes());
+                    response.extend_from_slice(b"\r\n");
+                    response.extend_from_slice(&unsubscribed_channel);
+                    response.extend_from_slice(b"\r\n:");
+
+                    response.extend_from_slice(itoa_buf.format(count).as_bytes());
+                    response.extend_from_slice(b"\r\n");
+                }
+            }
+            None => {
+                response.extend_from_slice(b"*3\r\n$11\r\nunsubscribe\r\n$-1\r\n:0\r\n");
+            }
+        },
         Response::Error(_) => {
             response.extend_from_slice(b"-ERR Some error occured, and because I was too impatient to test this I didn't really wanna write out the logic to match my way through to figure out which error has happened here.\r\n");
         }

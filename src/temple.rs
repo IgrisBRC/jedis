@@ -761,7 +761,6 @@ impl Soul {
         key: Vec<u8>,
         now: SystemTime,
     ) -> Result<Option<Vec<Option<Vec<u8>>>>, Sacrilege> {
-
         match self.get_valid_value(&key, now) {
             Some(Value::Hash(map)) => {
                 let mut result = Vec::with_capacity(map.len() * 2);
@@ -783,7 +782,6 @@ impl Soul {
         key: Vec<u8>,
         now: SystemTime,
     ) -> Result<Option<Vec<Option<Vec<u8>>>>, Sacrilege> {
-
         match self.get_valid_value(&key, now) {
             Some(Value::Set(set)) => {
                 let mut result = Vec::with_capacity(set.len());
@@ -869,6 +867,24 @@ impl ClientMap {
         }
     }
 
+    pub fn unsubscribe(&mut self, token: Token, events: &Option<Vec<(Vec<u8>, usize)>>) {
+        let Some(events) = events else {
+            return;
+        };
+
+        for (event, _) in events {
+            match self.0.get_mut(event) {
+                Some(set) => {
+                    set.remove(&token);
+                    if set.is_empty() {
+                        self.0.remove(event);
+                    }
+                }
+                None => {}
+            }
+        }
+    }
+
     pub fn publish(&self, event: Vec<u8>) -> Vec<Token> {
         match self.0.get(&event) {
             Some(clients) => clients.iter().cloned().collect(),
@@ -910,6 +926,43 @@ impl EventMap {
 
                 set_len
             }
+        }
+    }
+
+    pub fn unsubscribe(
+        &mut self,
+        events: Vec<Vec<u8>>,
+        token: Token,
+    ) -> Option<Vec<(Vec<u8>, usize)>> {
+        match self.0.get_mut(&token) {
+            Some(existing_events) => {
+                let mut result = Vec::new();
+                let mut count = existing_events.len();
+
+                if events.len() > 0 {
+                    for event in events {
+                        if existing_events.remove(&event) {
+                            count -= 1;
+                        }
+
+                        result.push((event, count));
+                    }
+
+                    Some(result)
+                } else {
+                    let unsubscribed_events: Vec<Vec<u8>> =
+                        std::mem::take(existing_events).into_iter().collect();
+                    let mut count = unsubscribed_events.len();
+
+                    for event in unsubscribed_events {
+                        count -= 1;
+                        result.push((event, count));
+                    }
+
+                    Some(result)
+                }
+            }
+            None => None,
         }
     }
 }
@@ -1149,6 +1202,11 @@ pub enum Wish {
         token: Token,
         tx: Sender<Decree>,
         time: SystemTime,
+    },
+    Unsubscribe {
+        token: Token,
+        tx: Sender<Decree>,
+        terms: Vec<Vec<u8>>,
     },
 }
 
@@ -2127,6 +2185,20 @@ impl<'a> Temple<'a> {
                                 }
                             }
                         },
+                        Wish::Unsubscribe { token, tx, terms } => {
+                            let unsubscribed_events = event_map.unsubscribe(terms, token);
+                            client_map.unsubscribe(token, &unsubscribed_events);
+
+                            if tx
+                                .send(Decree::Deliver(Gift {
+                                    token,
+                                    response: Response::UnsubscribedChannels(unsubscribed_events),
+                                }))
+                                .is_err()
+                            {
+                                eprintln!("angel panicked");
+                            };
+                        }
                     },
                     Err(e) => {
                         eprintln!("GodThread: {}", e);
@@ -2825,6 +2897,16 @@ impl<'a> Temple<'a> {
                 tx,
                 time,
             })
+            .is_err()
+        {
+            eprintln!("angel panicked");
+        }
+    }
+
+    pub fn unsubscribe(&self, tx: Sender<Decree>, token: Token, terms: Vec<Vec<u8>>) {
+        if self
+            .tx
+            .send(Wish::Unsubscribe { token, tx, terms })
             .is_err()
         {
             eprintln!("angel panicked");
