@@ -62,6 +62,10 @@ https://crates.io/crates/jemallocator
 
 https://crates.io/crates/itoa
 
+https://crates.io/crates/rkyv
+
+https://crates.io/crates/ctrlc
+
 ## Maybe plans
 
 Sharding
