@@ -11,7 +11,7 @@ use jerusalem::temple::Temple;
 use jerusalem::wish::grant::Decree;
 use jerusalem::wish::{self, Pilgrim};
 
-use mio::net::TcpListener;
+use mio::net::{TcpListener};
 use mio::{Events, Interest, Poll, Token};
 
 fn main() {
@@ -40,8 +40,12 @@ fn main() {
 
     let temple = Temple::new();
 
+    let mut server_temple = temple.clone();
+
     let (ingress_tx, ingress_rx) = std::sync::mpsc::channel();
     let (egress_tx, egress_rx) = std::sync::mpsc::channel();
+
+    let shutdown_tx = egress_tx.clone();
 
     let (pilgrim_tx, pilgrim_rx) = std::sync::mpsc::channel::<Decree>();
 
@@ -102,6 +106,26 @@ fn main() {
         }
     });
 
+    let dummy_tx = pilgrim_tx.clone();
+
+    if ctrlc::set_handler(move || {
+        let (server_tx, server_rx) = std::sync::mpsc::channel::<Result<(), ()>>();
+
+        server_temple.save(dummy_tx.clone(), server_tx, Token(0));
+
+        if let Ok(Ok(())) = server_rx.recv() {
+            println!("Database snapshot saved successfuly");
+        } else {
+            println!("Couldn't save database snapshot");
+        }
+
+        if shutdown_tx.send(Token(0)).is_err() {
+            eprintln!("ctrlc handler failed");
+        }
+    }).is_err() {
+        eprintln!("Failed to set ctrlc handler");
+    };
+
     loop {
         while let Ok((token, pilgrim)) = ingress_rx.try_recv() {
             ingress_map.insert(token, pilgrim);
@@ -121,6 +145,10 @@ fn main() {
         }
 
         while let Ok(token) = egress_rx.try_recv() {
+            if token == Token(0) {
+                std::process::exit(0);
+            }
+
             if let Some(mut pilgrim) = ingress_map.remove(&token)
                 && poll.registry().deregister(&mut pilgrim.stream).is_err()
             {

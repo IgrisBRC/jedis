@@ -6,12 +6,15 @@ use std::vec::IntoIter;
 use std::{collections::HashMap, time::SystemTime};
 
 use mio::Token;
+use rkyv::api::low::deserialize;
+use rkyv::rancor::Error;
+use rkyv::{Archive, Deserialize, Serialize};
 
 use crate::wish::grant::{Decree, Gift};
 use crate::wish::util::bytes_to_i64;
 use crate::wish::{Command, InfoType, Response, Sacrilege};
 
-#[derive(Clone)]
+#[derive(Clone, Archive, Serialize, Deserialize)]
 pub enum Value {
     String(Vec<u8>),
     List(VecDeque<Vec<u8>>),
@@ -21,6 +24,7 @@ pub enum Value {
     ClientMap(HashMap<usize, HashSet<Vec<u8>>>),
 }
 
+#[derive(Archive, Serialize, Deserialize)]
 pub struct Soul(HashMap<Vec<u8>, (Value, Option<u64>)>);
 
 pub struct EventMap(HashMap<Token, HashSet<Vec<u8>>>);
@@ -35,6 +39,26 @@ impl Default for Soul {
 impl Soul {
     pub fn new() -> Self {
         Soul(HashMap::new())
+    }
+
+    pub fn save(&self, path: String) -> Result<(), ()> {
+        let Ok(bytes) = rkyv::to_bytes::<Error>(self) else {
+            eprintln!("to_bytes failed");
+            return Err(());
+        };
+
+        if let Err(e) = std::fs::write(path, bytes) {
+            eprintln!("File save errored with: {}", e);
+            return Err(());
+        }
+
+        // An idea
+        // std::fs::write(
+        //     "/home/Igris/RustProjects/mini_redis/dump.rdb",
+        //     rkyv::to_bytes::<dyn Error>(self)?,
+        // )?;
+
+        Ok(())
     }
 
     pub fn get(&mut self, key: Vec<u8>, now: u64) -> Result<Option<Vec<u8>>, Sacrilege> {
@@ -1148,10 +1172,15 @@ pub enum CommandType {
     Unsubscribe {
         terms: Vec<Vec<u8>>,
     },
+    Save {
+        tx: Sender<Result<(), ()>>,
+        file_path: String,
+    },
 }
 
 #[derive(Clone)]
 pub struct Temple {
+    file_path: String,
     tx: Sender<Wish>,
 }
 
@@ -1160,7 +1189,35 @@ impl Temple {
         let (tx, rx): (Sender<Wish>, Receiver<Wish>) = std::sync::mpsc::channel();
 
         std::thread::spawn(move || {
-            let mut soul = Soul::new();
+            let mut soul: Soul = (|| {
+                let Ok(bytes) = std::fs::read("/home/Igris/RustProjects/mini_redis/dump.rdb")
+                else {
+                    return Soul::new();
+                };
+
+                let Ok(archived_soul) = rkyv::access::<ArchivedSoul, Error>(&bytes) else {
+                    return Soul::new();
+                };
+
+                match deserialize::<_, Error>(archived_soul) {
+                    Ok(snapshot) => {
+                        println!("Snapshot loaded successfully");
+                        snapshot
+                    }
+                    Err(e) => {
+                        println!("Couldn't load snapshot: {}", e);
+                        Soul::new()
+                    }
+                }
+            })();
+
+            // if let Ok(bytes) = std::fs::read("/home/Igris/RustProjects/mini_redis/dump.rdb") {
+            //     let archived_soul = rkyv::access::<ArchivedSoul, Error>(&bytes).unwrap();
+            //
+            //     deserialize::<_, Error>(archived_soul).unwrap()
+            // };
+
+            // let mut soul = Soul::new();
             let mut client_map = ClientMap::new();
             let mut event_map = EventMap::new();
             let mut subscribed_clients = HashSet::new();
@@ -1211,6 +1268,13 @@ impl Temple {
                                 };
 
                                 continue;
+                            }
+                            CommandType::Save { tx, file_path } => {
+                                if tx.send(soul.save(file_path)).is_err() {
+                                    eprintln!("angel panicked");
+                                }
+
+                                break;
                             }
                             _ => {}
                         }
@@ -2037,7 +2101,10 @@ impl Temple {
             }
         });
 
-        Temple { tx }
+        Temple {
+            file_path: String::from("/home/Igris/RustProjects/mini_redis/dump.rdb"),
+            tx,
+        }
     }
 
     pub fn get(&self, key: Vec<u8>, tx: Sender<Decree>, token: Token, time: u64) {
@@ -2676,6 +2743,23 @@ impl Temple {
                 tx,
                 token,
                 command_type: CommandType::Unsubscribe { terms },
+            })
+            .is_err()
+        {
+            eprintln!("angel panicked");
+        }
+    }
+
+    pub fn save(&mut self, dummy_tx: Sender<Decree>, tx: Sender<Result<(), ()>>, token: Token) {
+        if self
+            .tx
+            .send(Wish {
+                tx: dummy_tx,
+                token,
+                command_type: CommandType::Save {
+                    tx,
+                    file_path: std::mem::take(&mut self.file_path),
+                },
             })
             .is_err()
         {

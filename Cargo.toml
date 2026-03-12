@@ -8,3 +8,5 @@ mio = {version = "1", features = ["os-poll","net"]}
 crossbeam-channel = "0.5.15"
 jemallocator = "0.5"
 itoa = "1.0"
+rkyv = "0.8"
+ctrlc = "3.5"
