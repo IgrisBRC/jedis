@@ -69,6 +69,7 @@ impl Virtue {
     }
 }
 
+#[derive(Debug)]
 pub enum Command {
     PING,
     SET,
@@ -108,6 +109,7 @@ pub enum Command {
     SMEMBERS,
 }
 
+#[derive(Debug)]
 pub enum Sacrilege {
     IncorrectNumberOfArguments(Command),
     IncorrectUsage(Command),

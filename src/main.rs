@@ -8,6 +8,7 @@ use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4, TcpStream};
 use jerusalem::choir::Choir;
 use jerusalem::egress;
 use jerusalem::temple::Temple;
+use jerusalem::temple::soul::SaveError;
 use jerusalem::wish::grant::Decree;
 use jerusalem::wish::{self, Pilgrim};
 
@@ -49,14 +50,14 @@ fn main() {
 
     let (pilgrim_tx, pilgrim_rx) = std::sync::mpsc::channel::<Decree>();
 
+    let dummy_tx = pilgrim_tx.clone();
+
     std::thread::spawn(move || {
         egress::egress(pilgrim_rx, egress_tx);
     });
 
-    let dummy_tx = pilgrim_tx.clone();
-
     if ctrlc::set_handler(move || {
-        let (server_tx, server_rx) = std::sync::mpsc::channel::<Result<(), ()>>();
+        let (server_tx, server_rx) = std::sync::mpsc::channel::<Result<(), SaveError>>();
 
         server_temple.save(dummy_tx.clone(), server_tx, SERVER);
 

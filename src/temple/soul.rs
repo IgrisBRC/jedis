@@ -21,26 +21,32 @@ pub enum Value {
 #[derive(Archive, Serialize, Deserialize)]
 pub struct Soul(HashMap<Vec<u8>, (Value, Option<u64>)>);
 
+pub enum SaveError {
+    SerializationError(String),
+    FileWriteError(String),
+}
+
 impl Default for Soul {
     fn default() -> Self {
         Self::new()
     }
 }
 
+use SaveError::{FileWriteError, SerializationError};
+
 impl Soul {
     pub fn new() -> Self {
         Soul(HashMap::new())
     }
 
-    pub fn save(&self, path: String) -> Result<(), ()> {
-        let Ok(bytes) = rkyv::to_bytes::<Error>(self) else {
-            eprintln!("to_bytes failed");
-            return Err(());
+    pub fn save(&self, path: String) -> Result<(), SaveError> {
+        let bytes = match rkyv::to_bytes::<Error>(self) {
+            Ok(bytes) => bytes,
+            Err(err) => return Err(SerializationError(err.to_string())),
         };
 
         if let Err(e) = std::fs::write(path, bytes) {
-            eprintln!("File save errored with: {}", e);
-            return Err(());
+            return Err(FileWriteError(e.to_string()));
         }
 
         Ok(())
@@ -631,8 +637,7 @@ impl Soul {
                 let (_, existing_expiry) = occupied.get_mut();
 
                 if let Some(expiry) = existing_expiry {
-                    let expiry =
-                        (UNIX_EPOCH + std::time::Duration::from_secs(*expiry));
+                    let expiry = UNIX_EPOCH + std::time::Duration::from_secs(*expiry);
 
                     if expiry < now {
                         occupied.remove();

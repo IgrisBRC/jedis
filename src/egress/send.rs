@@ -105,11 +105,9 @@ pub fn send(stream: &mut TcpStream, gift: Gift, response: &mut Vec<u8>) -> Resul
                     response.extend_from_slice(b"-ERR value is not an integer or out of range\r\n");
                 }
                 Command::LSET | Command::LINDEX => {
-                    // In your Soul, these return IncorrectUsage when out of bounds
                     response.extend_from_slice(b"-ERR index out of range\r\n");
                 }
                 _ => {
-                    // Standard Redis response for trying to use a List command on a String, etc.
                     response.extend_from_slice(
                         b"-WRONGTYPE Operation against a key holding the wrong kind of value\r\n",
                     );

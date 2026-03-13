@@ -36,5 +36,4 @@ fn test_concurrent_increments() {
     let final_val = std::str::from_utf8(&buf[..n]).unwrap();
 
     assert!(final_val.contains("10000"));
-    println!("The Temple held firm: {}", final_val);
 }

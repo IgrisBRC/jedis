@@ -7,6 +7,7 @@ use mio::Token;
 use rkyv::api::low::deserialize;
 use rkyv::rancor::Error;
 
+use crate::temple::soul::SaveError;
 use crate::wish::grant::{Decree, Gift};
 use crate::wish::{InfoType, Response, Sacrilege};
 
@@ -335,7 +336,7 @@ pub enum CommandType {
         terms: Vec<Vec<u8>>,
     },
     Save {
-        tx: Sender<Result<(), ()>>,
+        tx: Sender<Result<(), SaveError>>,
         file_path: String,
     },
 }
@@ -1847,7 +1848,7 @@ impl Temple {
             .send(Wish {
                 tx,
                 token,
-                command_type: CommandType::Sadd { key, values, time },
+                command_type: CommandType::Srem { key, values, time },
             })
             .is_err()
         {
@@ -1918,7 +1919,7 @@ impl Temple {
         }
     }
 
-    pub fn save(&mut self, dummy_tx: Sender<Decree>, tx: Sender<Result<(), ()>>, token: Token) {
+    pub fn save(&mut self, dummy_tx: Sender<Decree>, tx: Sender<Result<(), SaveError>>, token: Token) {
         if self
             .tx
             .send(Wish {
