@@ -41,7 +41,7 @@ pub fn hlen(terms: Vec<Vec<u8>>, temple: &mut Temple, tx: Sender<Decree>, token:
     } else if tx
         .send(Decree::Deliver(Gift {
             token,
-            response: Response::Error(Sacrilege::IncorrectNumberOfArguments(Command::HGET)),
+            response: Response::Error(Sacrilege::IncorrectNumberOfArguments(Command::HLEN)),
         }))
         .is_err()
     {

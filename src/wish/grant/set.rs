@@ -1,7 +1,7 @@
 use mio::Token;
 
 use crate::{
-    temple::{Temple, Value},
+    temple::{Temple, soul::Value},
     wish::{
         Command, Response, Sacrilege,
         grant::{Decree, Gift},
@@ -9,7 +9,10 @@ use crate::{
     },
 };
 
-use std::{sync::mpsc::Sender, time::{SystemTime, UNIX_EPOCH}};
+use std::{
+    sync::mpsc::Sender,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 pub fn set(terms: Vec<Vec<u8>>, temple: &mut Temple, tx: Sender<Decree>, token: Token) {
     if terms.len() > 5 {
@@ -66,15 +69,7 @@ pub fn set(terms: Vec<Vec<u8>>, temple: &mut Temple, tx: Sender<Decree>, token: 
                         .map(|d| d.as_secs())
                         .unwrap_or(0);
 
-                    temple.set(
-                        key,
-                        (
-                            Value::String(value),
-                            Some(now + expiry),
-                        ),
-                        tx,
-                        token,
-                    );
+                    temple.set(key, (Value::String(value), Some(now + expiry)), tx, token);
                 } else if tx
                     .send(Decree::Deliver(Gift {
                         token,

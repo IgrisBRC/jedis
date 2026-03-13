@@ -2,7 +2,7 @@
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 use std::collections::HashMap;
-use std::io::{ErrorKind, Write};
+use std::io::ErrorKind;
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4, TcpStream};
 
 use jerusalem::choir::Choir;
@@ -11,7 +11,7 @@ use jerusalem::temple::Temple;
 use jerusalem::wish::grant::Decree;
 use jerusalem::wish::{self, Pilgrim};
 
-use mio::net::{TcpListener};
+use mio::net::TcpListener;
 use mio::{Events, Interest, Poll, Token};
 
 fn main() {
@@ -50,60 +50,7 @@ fn main() {
     let (pilgrim_tx, pilgrim_rx) = std::sync::mpsc::channel::<Decree>();
 
     std::thread::spawn(move || {
-        let mut egress_map: HashMap<Token, mio::net::TcpStream> = HashMap::new();
-        let mut buffer = Vec::with_capacity(2100);
-        let mut itoa_buf = itoa::Buffer::new();
-
-        loop {
-            match pilgrim_rx.recv() {
-                Ok(Decree::Welcome(token, stream)) => {
-                    egress_map.insert(token, stream);
-                }
-                Ok(Decree::Deliver(gift)) => {
-                    if let Some(stream) = egress_map.get_mut(&gift.token) {
-                        let token = gift.token;
-
-                        if egress::egress(stream, gift, &mut buffer).is_err()
-                            && egress_tx.send(token).is_err()
-                        {
-                            eprintln!("angel panicked");
-                        };
-                    }
-                }
-                Ok(Decree::Broadcast(token, event, message, clients)) => {
-                    let clients_len = clients.len();
-
-                    let mut response = b"*3\r\n$7\r\nmessage\r\n$".to_vec();
-                    response.extend_from_slice(itoa_buf.format(event.len()).as_bytes());
-                    response.extend_from_slice(b"\r\n");
-                    response.extend_from_slice(&event);
-                    response.extend_from_slice(b"\r\n$");
-                    response.extend_from_slice(itoa_buf.format(message.len()).as_bytes());
-                    response.extend_from_slice(b"\r\n");
-                    response.extend_from_slice(&message);
-                    response.extend_from_slice(b"\r\n");
-
-                    for client in clients {
-                        if let Some(stream) = egress_map.get_mut(&client)
-                            && stream.write_all(&response).is_err()
-                        {
-                            eprintln!("writing to stream failed for client");
-                        }
-                    }
-
-                    if let Some(publisher_stream) = egress_map.get_mut(&token) {
-                        let mut response = b":".to_vec();
-                        response.extend_from_slice(itoa_buf.format(clients_len).as_bytes());
-                        response.extend_from_slice(b"\r\n");
-
-                        if publisher_stream.write_all(&response).is_err() {
-                            eprintln!("writing to stream failed for publisher");
-                        }
-                    }
-                }
-                Err(_) => break,
-            }
-        }
+        egress::egress(pilgrim_rx, egress_tx);
     });
 
     let dummy_tx = pilgrim_tx.clone();
@@ -111,7 +58,7 @@ fn main() {
     if ctrlc::set_handler(move || {
         let (server_tx, server_rx) = std::sync::mpsc::channel::<Result<(), ()>>();
 
-        server_temple.save(dummy_tx.clone(), server_tx, Token(0));
+        server_temple.save(dummy_tx.clone(), server_tx, SERVER);
 
         if let Ok(Ok(())) = server_rx.recv() {
             println!("Database snapshot saved successfuly");
@@ -119,10 +66,12 @@ fn main() {
             println!("Couldn't save database snapshot");
         }
 
-        if shutdown_tx.send(Token(0)).is_err() {
-            eprintln!("ctrlc handler failed");
+        if shutdown_tx.send(SERVER).is_err() {
+            eprintln!("Ctrlc handler failed");
         }
-    }).is_err() {
+    })
+    .is_err()
+    {
         eprintln!("Failed to set ctrlc handler");
     };
 
