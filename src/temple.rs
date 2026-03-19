@@ -12,11 +12,11 @@ use crate::temple::{
     },
 };
 
-use std::collections::HashSet;
 use std::path::PathBuf;
 use std::sync::mpsc::{Receiver, Sender};
 use std::vec::IntoIter;
 use std::{collections::HashMap, time::SystemTime};
+use std::{collections::HashSet, sync::Arc};
 
 use mio::Token;
 use rkyv::api::low::deserialize;
@@ -33,31 +33,49 @@ pub mod soul;
 
 use soul::{ArchivedSoul, Soul, Value};
 
-// pub struct Shrine {
-//     file_path: PathBuf,
-//     ipv4_address: String,
-//     port: u16,
-//     io_threads: usize,
-//     event_capacity: usize,
-// }
+pub struct Shrine {
+    tx: Sender<Wish>,
 
-// impl Shrine {
-//     pub fn new(
-//         file_path: PathBuf,
-//         ipv4_address: String,
-//         port: u16,
-//         io_threads: usize,
-//         event_capacity: usize,
-//     ) -> Self {
-//         Shrine {
-//             file_path,
-//             ipv4_address,
-//             port,
-//             io_threads,
-//             event_capacity,
-//         }
-//     }
-// }
+    file_path: Arc<PathBuf>,
+    ipv4_address: Arc<String>,
+    port: Arc<u16>,
+    io_threads: Arc<usize>,
+    event_capacity: Arc<usize>,
+}
+
+impl Shrine {
+    pub fn new(
+        file_path: PathBuf,
+        ipv4_address: String,
+        port: u16,
+        io_threads: usize,
+        event_capacity: usize,
+    ) -> Self {
+        let (tx, rx): (Sender<Wish>, Receiver<Wish>) = std::sync::mpsc::channel();
+
+        Temple::worship(rx);
+
+        Shrine {
+            tx,
+            file_path: file_path.into(),
+            ipv4_address: ipv4_address.into(),
+            port: port.into(),
+            io_threads: io_threads.into(),
+            event_capacity: event_capacity.into(),
+        }
+    }
+
+    pub fn sanctify(&self) -> Temple {
+        Temple {
+            tx: self.tx.clone(),
+            file_path: Arc::clone(&self.file_path),
+            ipv4_address: Arc::clone(&self.ipv4_address),
+            port: Arc::clone(&self.port),
+            io_threads: Arc::clone(&self.io_threads),
+            event_capacity: Arc::clone(&self.event_capacity),
+        }
+    }
+}
 
 impl Default for ClientMap {
     fn default() -> Self {
@@ -400,22 +418,18 @@ pub enum DatabaseCommand {
     },
 }
 
-#[derive(Clone)]
 pub struct Temple {
-    file_path: PathBuf,
     tx: Sender<Wish>,
-}
 
-impl Default for Temple {
-    fn default() -> Self {
-        Self::new(std::env::current_dir().unwrap())
-    }
+    file_path: Arc<PathBuf>,
+    ipv4_address: Arc<String>,
+    port: Arc<u16>,
+    io_threads: Arc<usize>,
+    event_capacity: Arc<usize>,
 }
 
 impl Temple {
-    pub fn new(file_path: PathBuf) -> Self {
-        let (tx, rx): (Sender<Wish>, Receiver<Wish>) = std::sync::mpsc::channel();
-
+    pub fn worship(rx: Receiver<Wish>) {
         std::thread::spawn(move || {
             let mut soul: Soul = (|| {
                 let Ok(bytes) = std::fs::read("/home/Igris/RustProjects/mini_redis/dump.rdb")
@@ -1397,8 +1411,6 @@ impl Temple {
                 }
             }
         });
-
-        Temple { file_path, tx }
     }
 
     pub fn get(&self, key: Vec<u8>, tx: Sender<Decree>, token: Token, time: u64) {
@@ -2128,9 +2140,5 @@ impl Temple {
         {
             eprintln!("angel panicked");
         }
-    }
-
-    pub fn sanctify(&self) -> Self {
-        self.clone()
     }
 }

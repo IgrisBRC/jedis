@@ -6,7 +6,7 @@ use std::str::FromStr;
 
 use jerusalem::choir::Choir;
 use jerusalem::egress;
-use jerusalem::temple::Temple;
+use jerusalem::temple::Shrine;
 use jerusalem::temple::soul::SaveError;
 use jerusalem::wish::grant::Decree;
 use jerusalem::wish::{self, Pilgrim};
@@ -43,9 +43,15 @@ pub fn run(
 
     let ingress_choir = Choir::new(io_threads);
 
-    let temple = Temple::new(file_path);
+    let shrine = Shrine::new(
+        file_path,
+        ipv4_address.to_string(),
+        port,
+        io_threads,
+        event_capacity,
+    );
 
-    let mut server_temple = temple.clone();
+    let mut server_temple = shrine.sanctify();
 
     let (ingress_tx, ingress_rx) = std::sync::mpsc::channel::<(Token, Pilgrim)>();
     let (egress_tx, egress_rx) = std::sync::mpsc::channel();
@@ -165,7 +171,7 @@ pub fn run(
 
                 Token(token_number) => {
                     if let Some(mut pilgrim) = ingress_map.remove(&Token(token_number)) {
-                        let sanctum = temple.sanctify();
+                        let sanctum = shrine.sanctify();
                         let tx = ingress_tx.clone();
 
                         ingress_choir.sing(move || {
