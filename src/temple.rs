@@ -1,28 +1,28 @@
 use crate::temple::{
     BroadcastCommand::{Publish, Subscribe, Unsubscribe},
     ClientCommandType::{Broadcast, Database},
-    ServerCommand::Save,
+    ServerCommand::{GetFilePath, Save},
 };
 use crate::temple::{
     CommandType::{Client, Server},
     DatabaseCommand::{
-        Append, Decr, Del, Exists, Expire, Get, Hdel, Hexists, Hget, Hgetall, Hlen, Hmget, Hset,
-        Incr, Lindex, Llen, Lpop, LpopM, Lpush, Lrange, Lrem, Lset, Mget, Mset, Rpop, RpopM, Rpush,
-        Sadd, Set, Sismember, Smembers, Srem, Strlen, Ttl,
+        Append, ConfigGet, Decr, Del, Exists, Expire, Get, Hdel, Hexists, Hget, Hgetall, Hlen,
+        Hmget, Hset, Incr, Lindex, Llen, Lpop, LpopM, Lpush, Lrange, Lrem, Lset, Mget, Mset, Rpop,
+        RpopM, Rpush, Sadd, Set, Sismember, Smembers, Srem, Strlen, Ttl,
     },
 };
 
+use std::collections::HashSet;
 use std::path::PathBuf;
 use std::sync::mpsc::{Receiver, Sender};
 use std::vec::IntoIter;
 use std::{collections::HashMap, time::SystemTime};
-use std::{collections::HashSet, sync::Arc};
 
 use mio::Token;
 use rkyv::api::low::deserialize;
 use rkyv::rancor::Error;
 
-use crate::temple::soul::SaveError;
+use crate::temple::soul::ServerError;
 use crate::wish::grant::{Decree, Gift};
 use crate::wish::{InfoType, Response, Sacrilege};
 
@@ -32,50 +32,6 @@ pub struct ClientMap(HashMap<Vec<u8>, HashSet<Token>>);
 pub mod soul;
 
 use soul::{ArchivedSoul, Soul, Value};
-
-pub struct Shrine {
-    tx: Sender<Wish>,
-
-    file_path: Arc<PathBuf>,
-    ipv4_address: Arc<String>,
-    port: Arc<u16>,
-    io_threads: Arc<usize>,
-    event_capacity: Arc<usize>,
-}
-
-impl Shrine {
-    pub fn new(
-        file_path: PathBuf,
-        ipv4_address: String,
-        port: u16,
-        io_threads: usize,
-        event_capacity: usize,
-    ) -> Self {
-        let (tx, rx): (Sender<Wish>, Receiver<Wish>) = std::sync::mpsc::channel();
-
-        Temple::worship(rx);
-
-        Shrine {
-            tx,
-            file_path: file_path.into(),
-            ipv4_address: ipv4_address.into(),
-            port: port.into(),
-            io_threads: io_threads.into(),
-            event_capacity: event_capacity.into(),
-        }
-    }
-
-    pub fn sanctify(&self) -> Temple {
-        Temple {
-            tx: self.tx.clone(),
-            file_path: Arc::clone(&self.file_path),
-            ipv4_address: Arc::clone(&self.ipv4_address),
-            port: Arc::clone(&self.port),
-            io_threads: Arc::clone(&self.io_threads),
-            event_capacity: Arc::clone(&self.event_capacity),
-        }
-    }
-}
 
 impl Default for ClientMap {
     fn default() -> Self {
@@ -234,8 +190,11 @@ pub enum CommandType {
 #[derive(Clone)]
 pub enum ServerCommand {
     Save {
-        tx: Sender<Result<(), SaveError>>,
+        tx: Sender<Result<(), ServerError>>,
         file_path: PathBuf,
+    },
+    GetFilePath {
+        tx: Sender<Result<Vec<u8>, ServerError>>,
     },
 }
 
@@ -416,20 +375,29 @@ pub enum DatabaseCommand {
         key: Vec<u8>,
         time: u64,
     },
+    ConfigGet {
+        properties: Vec<Vec<u8>>,
+    },
 }
 
+#[derive(Clone)]
 pub struct Temple {
     tx: Sender<Wish>,
-
-    file_path: Arc<PathBuf>,
-    ipv4_address: Arc<String>,
-    port: Arc<u16>,
-    io_threads: Arc<usize>,
-    event_capacity: Arc<usize>,
 }
 
 impl Temple {
-    pub fn worship(rx: Receiver<Wish>) {
+    pub fn worship(
+        dir: Vec<u8>,
+        dbfilename: Vec<u8>,
+        ipv4_address: Vec<u8>,
+        port: Vec<u8>,
+        io_threads: Vec<u8>,
+        event_capacity: Vec<u8>,
+        max_memory: Vec<u8>,
+        append_only: Vec<u8>,
+    ) -> Self {
+        let (tx, rx): (Sender<Wish>, Receiver<Wish>) = std::sync::mpsc::channel();
+
         std::thread::spawn(move || {
             let mut soul: Soul = (|| {
                 let Ok(bytes) = std::fs::read("/home/Igris/RustProjects/mini_redis/dump.rdb")
@@ -457,6 +425,22 @@ impl Temple {
             let mut event_map = EventMap::new();
             let mut subscribed_clients = HashSet::new();
 
+            // let mut info: Vec<(Vec<u8>, Vec<u8>)> = Vec::new();
+            let mut config: HashMap<Vec<u8>, Vec<u8>> = HashMap::new();
+
+            // soul.set_info();
+            Temple::initialize_config(
+                &mut config,
+                dir,
+                dbfilename,
+                ipv4_address,
+                port,
+                io_threads,
+                event_capacity,
+                max_memory,
+                append_only,
+            );
+
             loop {
                 match rx.recv() {
                     Ok(wish) => {
@@ -472,6 +456,34 @@ impl Temple {
                                     }
 
                                     break;
+                                }
+                                GetFilePath { tx } => {
+                                    let Some(dir) = config.get("dir".as_bytes()) else {
+                                        if tx.send(Err(ServerError::ValueNotSet)).is_err() {
+                                            eprintln!("angel panicked");
+                                        }
+
+                                        return;
+                                    };
+
+                                    let Some(dbfilename) = config.get("dbfilename".as_bytes())
+                                    else {
+                                        if tx.send(Err(ServerError::ValueNotSet)).is_err() {
+                                            eprintln!("angel panicked");
+                                        }
+
+                                        return;
+                                    };
+
+                                    let mut file_path: Vec<u8> =
+                                        Vec::with_capacity(dir.len() + dbfilename.len());
+                                    file_path.extend(dir);
+                                    file_path.push(b'/');
+                                    file_path.extend(dbfilename);
+
+                                    if tx.send(Ok(file_path)).is_err() {
+                                        eprintln!("angel panicked");
+                                    }
                                 }
                             },
                             Client(client_command) => {
@@ -1398,6 +1410,45 @@ impl Temple {
                                                     }
                                                 }
                                             }
+                                            ConfigGet { properties } => {
+                                                let mut result = Vec::new();
+
+                                                if properties.contains(&b"*".to_vec()) {
+                                                    for (property, value) in config.iter() {
+                                                        result.push(Some(property).cloned());
+                                                        result.push(Some(value).cloned());
+                                                    }
+
+                                                    result.push(Some(b"databases".to_vec()));
+                                                    result.push(Some(b"1".to_vec()));
+                                                } else {
+                                                    for (_, property) in
+                                                        properties.iter().enumerate()
+                                                    {
+                                                        if let Some(value) = config.get(property) {
+                                                            result.push(Some(property).cloned());
+                                                            result.push(Some(value).cloned());
+                                                        }
+                                                    }
+
+                                                    if properties.contains(&b"databases".to_vec()) {
+                                                        result.push(Some(b"databases".to_vec()));
+                                                        result.push(Some(b"1".to_vec()));
+                                                    }
+                                                }
+
+                                                if tx
+                                                    .send(Decree::Deliver(Gift {
+                                                        token,
+                                                        response: Response::BulkStringArray(Some(
+                                                            result,
+                                                        )),
+                                                    }))
+                                                    .is_err()
+                                                {
+                                                    eprintln!("angel panicked");
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -1411,6 +1462,8 @@ impl Temple {
                 }
             }
         });
+
+        Temple { tx }
     }
 
     pub fn get(&self, key: Vec<u8>, tx: Sender<Decree>, token: Token, time: u64) {
@@ -2126,19 +2179,83 @@ impl Temple {
         }
     }
 
-    pub fn save(&mut self, tx: Sender<Result<(), SaveError>>, token: Token) {
+    pub fn config_get(&self, tx: Sender<Decree>, token: Token, properties: Vec<Vec<u8>>) {
         if self
             .tx
             .send(Wish {
                 token,
-                command_type: CommandType::Server(Save {
+                command_type: CommandType::Client(ClientCommand {
                     tx,
-                    file_path: self.file_path.to_path_buf(),
+                    client_command_type: Database(ConfigGet { properties }),
                 }),
             })
             .is_err()
         {
             eprintln!("angel panicked");
         }
+    }
+
+    pub fn save(&mut self, tx: Sender<Result<(), ServerError>>, token: Token) {
+        let (server_tx, server_rx) = std::sync::mpsc::channel();
+
+        if self
+            .tx
+            .send(Wish {
+                token,
+                command_type: Server(ServerCommand::GetFilePath { tx: server_tx }),
+            })
+            .is_err()
+        {
+            eprintln!("angel panicked");
+        }
+
+        let file_path = match server_rx.recv() {
+            Ok(Ok(file_path)) => {
+                PathBuf::from(std::str::from_utf8(&file_path).expect("File path Invalid"))
+            }
+            _ => {
+                eprintln!("Couldn't get file path");
+                return;
+            }
+        };
+
+        if self
+            .tx
+            .send(Wish {
+                token,
+                command_type: Server(Save {
+                    tx,
+                    file_path: file_path.to_path_buf(),
+                }),
+            })
+            .is_err()
+        {
+            eprintln!("angel panicked");
+        }
+    }
+
+    fn initialize_config(
+        config: &mut HashMap<Vec<u8>, Vec<u8>>,
+        dir: Vec<u8>,
+        dbfilename: Vec<u8>,
+        ipv4_address: Vec<u8>,
+        port: Vec<u8>,
+        io_threads: Vec<u8>,
+        event_capacity: Vec<u8>,
+        max_memory: Vec<u8>,
+        append_only: Vec<u8>,
+    ) {
+        config.insert("dir".as_bytes().to_vec(), dir);
+        config.insert("dbfilename".as_bytes().to_vec(), dbfilename);
+        config.insert("ipv4_address".as_bytes().to_vec(), ipv4_address);
+        config.insert("port".as_bytes().to_vec(), port);
+        config.insert("io_threads".as_bytes().to_vec(), io_threads);
+        config.insert("max_memory".as_bytes().to_vec(), max_memory);
+        config.insert("event_capacity".as_bytes().to_vec(), event_capacity);
+        config.insert("append_only".as_bytes().to_vec(), append_only);
+    }
+
+    pub fn sanctify(&self) -> Self {
+        self.clone()
     }
 }

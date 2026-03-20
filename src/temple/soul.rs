@@ -22,9 +22,10 @@ pub enum Value {
 #[derive(Archive, Serialize, Deserialize)]
 pub struct Soul(HashMap<Vec<u8>, (Value, Option<u64>)>);
 
-pub enum SaveError {
+pub enum ServerError {
     SerializationError(String),
     FileWriteError(String),
+    ValueNotSet,
 }
 
 impl Default for Soul {
@@ -33,14 +34,14 @@ impl Default for Soul {
     }
 }
 
-use SaveError::{FileWriteError, SerializationError};
+use ServerError::{FileWriteError, SerializationError};
 
 impl Soul {
     pub fn new() -> Self {
         Soul(HashMap::new())
     }
 
-    pub fn save(&self, path: PathBuf) -> Result<(), SaveError> {
+    pub fn save(&self, path: PathBuf) -> Result<(), ServerError> {
         let bytes = match rkyv::to_bytes::<Error>(self) {
             Ok(bytes) => bytes,
             Err(err) => return Err(SerializationError(err.to_string())),

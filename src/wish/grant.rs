@@ -8,6 +8,7 @@ use crate::{
 use std::sync::mpsc::Sender;
 
 mod append;
+mod config;
 mod decr;
 mod del;
 mod exists;
@@ -130,7 +131,9 @@ pub fn grant(terms: Vec<Vec<u8>>, temple: &mut Temple, tx: Sender<Decree>, token
         smembers::smembers(terms, temple, tx, token);
     } else if cmd.eq_ignore_ascii_case(b"UNSUBSCRIBE") {
         unsubscribe::unsubscribe(terms, temple, tx, token);
-    } else if cmd.eq_ignore_ascii_case(b"COMMAND") || cmd.eq_ignore_ascii_case(b"CONFIG") {
+    } else if cmd.eq_ignore_ascii_case(b"CONFIG") {
+        config::config(terms, temple, tx, token);
+    } else if cmd.eq_ignore_ascii_case(b"COMMAND") {
         if tx
             .send(Decree::Deliver(Gift {
                 token,

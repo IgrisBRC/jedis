@@ -6,8 +6,8 @@ use std::str::FromStr;
 
 use jerusalem::choir::Choir;
 use jerusalem::egress;
-use jerusalem::temple::Shrine;
-use jerusalem::temple::soul::SaveError;
+use jerusalem::temple::Temple;
+use jerusalem::temple::soul::ServerError;
 use jerusalem::wish::grant::Decree;
 use jerusalem::wish::{self, Pilgrim};
 
@@ -19,7 +19,10 @@ pub fn run(
     port: u16,
     io_threads: usize,
     event_capacity: usize,
-    file_path: PathBuf,
+    dir: PathBuf,
+    dbfilename: &str,
+    max_memory: u64,
+    append_only: &str,
 ) {
     let ipv4_addr = Ipv4Addr::from_str(ipv4_address).expect("Invalid IPv4 address");
     let socket_addr_v4 = SocketAddrV4::new(ipv4_addr, port);
@@ -43,15 +46,22 @@ pub fn run(
 
     let ingress_choir = Choir::new(io_threads);
 
-    let shrine = Shrine::new(
-        file_path,
-        ipv4_address.to_string(),
-        port,
-        io_threads,
-        event_capacity,
+    let mut itoa_buf = itoa::Buffer::new();
+
+    let temple = Temple::worship(
+        dir.to_str()
+            .expect("Failed to convert directory path into UTF8")
+            .into(),
+        dbfilename.into(),
+        ipv4_address.into(),
+        itoa_buf.format(port).into(),
+        itoa_buf.format(io_threads).into(),
+        itoa_buf.format(event_capacity).into(),
+        itoa_buf.format(max_memory).into(),
+        append_only.into(),
     );
 
-    let mut server_temple = shrine.sanctify();
+    let mut server_temple = temple.sanctify();
 
     let (ingress_tx, ingress_rx) = std::sync::mpsc::channel::<(Token, Pilgrim)>();
     let (egress_tx, egress_rx) = std::sync::mpsc::channel();
@@ -64,11 +74,12 @@ pub fn run(
     });
 
     if ctrlc::set_handler(move || {
-        let (server_tx, server_rx) = std::sync::mpsc::channel::<Result<(), SaveError>>();
+        let (server_shutdown_tx, server_shutdown_rx) =
+            std::sync::mpsc::channel::<Result<(), ServerError>>();
 
-        server_temple.save(server_tx, SERVER);
+        server_temple.save(server_shutdown_tx, SERVER);
 
-        if let Ok(Ok(())) = server_rx.recv() {
+        if let Ok(Ok(())) = server_shutdown_rx.recv() {
             println!("Database snapshot saved successfuly");
         } else {
             println!("Couldn't save database snapshot");
@@ -171,7 +182,7 @@ pub fn run(
 
                 Token(token_number) => {
                     if let Some(mut pilgrim) = ingress_map.remove(&Token(token_number)) {
-                        let sanctum = shrine.sanctify();
+                        let sanctum = temple.sanctify();
                         let tx = ingress_tx.clone();
 
                         ingress_choir.sing(move || {

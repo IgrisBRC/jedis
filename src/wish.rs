@@ -107,6 +107,7 @@ pub enum Command {
     SISMEMBER,
     HGETALL,
     SMEMBERS,
+    CONFIG
 }
 
 #[derive(Debug)]

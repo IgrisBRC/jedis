@@ -107,6 +107,9 @@ pub fn send(stream: &mut TcpStream, gift: Gift, response: &mut Vec<u8>) -> Resul
                 Command::LSET | Command::LINDEX => {
                     response.extend_from_slice(b"-ERR index out of range\r\n");
                 }
+                Command::CONFIG => {
+                    response.extend_from_slice(b"-ERR Unknown Command after 'config'\r\n");
+                }
                 _ => {
                     response.extend_from_slice(
                         b"-WRONGTYPE Operation against a key holding the wrong kind of value\r\n",
@@ -189,6 +192,8 @@ pub fn send(stream: &mut TcpStream, gift: Gift, response: &mut Vec<u8>) -> Resul
                 Command::SMEMBERS => response.extend_from_slice(
                     b"-ERR wrong number of arguments for 'smembers' command\r\n",
                 ),
+                Command::CONFIG => response
+                    .extend_from_slice(b"-ERR wrong number of arguments for 'config' command\r\n"),
             },
             Sacrilege::SubscriberOnlyMode => response.extend_from_slice(
                 b"-ERR only SUBSCRIBE / UNSUBSCRIBE / PING / QUIT allowed in this context\r\n",
