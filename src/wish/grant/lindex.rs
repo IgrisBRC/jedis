@@ -21,6 +21,7 @@ pub fn lindex(terms: Vec<Vec<u8>>, temple: &mut Temple, tx: Sender<Decree>, toke
             .is_err()
     {
         eprintln!("angel panicked");
+        return;
     }
 
     let mut terms_iter = terms.into_iter();

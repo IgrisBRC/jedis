@@ -134,7 +134,7 @@ impl Soul {
         }
     }
 
-    pub fn strlen(&self, key: Vec<u8>, now: u64) -> Result<usize, Sacrilege> {
+    pub fn strlen(&mut self, key: Vec<u8>, now: u64) -> Result<usize, Sacrilege> {
         match self.get_valid_value(&key, now) {
             Some(Value::String(value)) => Ok(value.len()),
             Some(_) => Err(Sacrilege::IncorrectUsage(Command::STRLEN)),
@@ -154,7 +154,7 @@ impl Soul {
         number_of_entries_deleted
     }
 
-    pub fn exists(&self, keys: Vec<Vec<u8>>, now: u64) -> u32 {
+    pub fn exists(&mut self, keys: Vec<Vec<u8>>, now: u64) -> u32 {
         let mut number_of_entries_that_exist = 0;
 
         for key in keys {
@@ -460,7 +460,7 @@ impl Soul {
         }
     }
 
-    pub fn llen(&self, key: Vec<u8>, now: u64) -> Result<usize, Sacrilege> {
+    pub fn llen(&mut self, key: Vec<u8>, now: u64) -> Result<usize, Sacrilege> {
         match self.get_valid_value(&key, now) {
             Some(Value::List(list)) => Ok(list.len()),
             Some(_) => Err(Sacrilege::IncorrectUsage(Command::LLEN)),
@@ -469,7 +469,7 @@ impl Soul {
     }
 
     pub fn lrange(
-        &self,
+        &mut self,
         key: Vec<u8>,
         mut starting_index: i32,
         mut ending_index: i32,
@@ -514,7 +514,7 @@ impl Soul {
     }
 
     pub fn lindex(
-        &self,
+        &mut self,
         key: Vec<u8>,
         mut index: i32,
         now: u64,
@@ -666,7 +666,11 @@ impl Soul {
         }
     }
 
-    pub fn mget(&self, terms_iter: IntoIter<Vec<u8>>, now: u64) -> Option<Vec<Option<Vec<u8>>>> {
+    pub fn mget(
+        &mut self,
+        terms_iter: IntoIter<Vec<u8>>,
+        now: u64,
+    ) -> Option<Vec<Option<Vec<u8>>>> {
         let mut result = Vec::with_capacity(terms_iter.len());
 
         for key in terms_iter {
@@ -758,7 +762,7 @@ impl Soul {
                     Ok(0)
                 }
             }
-            Some(_) => Err(Sacrilege::IncorrectUsage(Command::SREM)),
+            Some(_) => Err(Sacrilege::IncorrectUsage(Command::SISMEMBER)),
             None => Ok(0),
         }
     }
@@ -804,31 +808,31 @@ impl Soul {
         }
     }
 
-    fn get_valid_value(&self, key: &Vec<u8>, now: u64) -> Option<&Value> {
-        match self.0.get(key) {
-            Some((value, Some(expiry))) => {
-                if *expiry < now {
-                    None
-                } else {
-                    Some(value)
-                }
-            }
-            Some((value, _)) => Some(value),
-            None => None,
+    fn get_valid_value(&mut self, key: &Vec<u8>, now: u64) -> Option<&Value> {
+        let is_expired = match self.0.get(key) {
+            Some((_, Some(expiry))) => *expiry < now,
+            _ => false,
+        };
+
+        if is_expired {
+            self.0.remove(key);
+            return None;
+        } else {
+            return self.0.get(key).map(|(value, _)| value);
         }
     }
 
     fn get_mut_valid_value(&mut self, key: &Vec<u8>, now: u64) -> Option<&mut Value> {
-        match self.0.get_mut(key) {
-            Some((value, Some(expiry))) => {
-                if *expiry < now {
-                    None
-                } else {
-                    Some(value)
-                }
-            }
-            Some((value, _)) => Some(value),
-            None => None,
+        let is_expired = match self.0.get(key) {
+            Some((_, Some(expiry))) => *expiry < now,
+            _ => false,
+        };
+
+        if is_expired {
+            self.0.remove(key);
+            return None;
+        } else {
+            return self.0.get_mut(key).map(|(value, _)| value);
         }
     }
 

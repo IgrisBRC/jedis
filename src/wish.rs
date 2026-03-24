@@ -107,7 +107,7 @@ pub enum Command {
     SISMEMBER,
     HGETALL,
     SMEMBERS,
-    CONFIG
+    CONFIG,
 }
 
 #[derive(Debug)]
@@ -155,25 +155,8 @@ pub mod util;
 pub fn wish(pilgrim: &mut Pilgrim, mut temple: Temple, token: Token) -> Result<(), Sin> {
     let virtue = pilgrim.virtue.get_or_insert_with(Virtue::new);
 
-    if virtue.write_idx > virtue.backlog.len() - 1024 {
-        virtue.compact();
-
-        if virtue.write_idx > virtue.backlog.len() - 1024 {
-            let new_size = virtue.backlog.len() * 2;
-
-            if new_size > 64 * 1024 * 1024 {
-                return Err(Sin::Blasphemy);
-            }
-
-            virtue.backlog.resize(new_size, 0);
-        }
-    }
-
-    match pilgrim.stream.read(&mut virtue.backlog[virtue.write_idx..]) {
-        Ok(0) => return Err(Sin::Disconnected),
-        Ok(n) => virtue.write_idx += n,
-        Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => return Ok(()),
-        Err(_) => return Err(Sin::Disconnected),
+    if virtue.potentially_resize_and_read(&mut pilgrim.stream)? {
+        return Ok(());
     }
 
     loop {

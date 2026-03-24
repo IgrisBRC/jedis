@@ -10,3 +10,4 @@ jemallocator = "0.5"
 itoa = "1.0"
 rkyv = "0.8"
 ctrlc = "3.5"
+clap = {version = "4.0", features = ["derive"]}

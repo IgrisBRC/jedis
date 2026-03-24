@@ -18,6 +18,7 @@ pub fn ping(terms: Vec<Vec<u8>>, tx: Sender<Decree>, token: Token) {
             .is_err()
         {
             eprintln!("angel panicked");
+            return;
         }
 
     if tx

@@ -400,8 +400,18 @@ impl Temple {
 
         std::thread::spawn(move || {
             let mut soul: Soul = (|| {
-                let Ok(bytes) = std::fs::read("/home/Igris/RustProjects/mini_redis/dump.rdb")
+                let db_file_path = [dir.as_slice(), b"/", dbfilename.as_slice()].concat();
+
+
+                let Ok(db_file_path) =
+                    std::str::from_utf8(&db_file_path)
                 else {
+                    println!("Couldn't load snapshot, failed to access file");
+                    return Soul::new();
+                };
+
+                let Ok(bytes) = std::fs::read(db_file_path) else {
+                    println!("Couldn't load snapshot, failed to read file");
                     return Soul::new();
                 };
 

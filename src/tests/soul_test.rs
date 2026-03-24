@@ -133,7 +133,7 @@ fn decr_non_integer_returns_error() {
 
 #[test]
 fn strlen_missing_key_is_zero() {
-    let s = soul();
+    let mut s = soul();
     assert_eq!(s.strlen(str_key("k"), NOW).unwrap(), 0);
 }
 
@@ -341,7 +341,7 @@ fn lpop_missing_key_returns_none() {
 
 #[test]
 fn llen_missing_key_is_zero() {
-    let s = soul();
+    let mut s = soul();
     assert_eq!(s.llen(str_key("l"), NOW).unwrap(), 0);
 }
 

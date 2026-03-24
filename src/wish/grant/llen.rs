@@ -20,6 +20,7 @@ pub fn llen(terms: Vec<Vec<u8>>, temple: &mut Temple, tx: Sender<Decree>, token:
             .is_err()
     {
         eprintln!("angel panicked");
+        return;
     }
 
     let mut terms_iter = terms.into_iter();
